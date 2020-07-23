@@ -1,0 +1,4 @@
+/EWARM/settings/*
+/EWARM/STM32F40_41xxx/*
+/EWARM/*.ewt
+/EWARM/*.dep
