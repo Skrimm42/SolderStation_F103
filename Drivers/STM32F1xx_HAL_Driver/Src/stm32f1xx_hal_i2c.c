@@ -6658,8 +6658,16 @@ static void I2C_DMAXferCplt(DMA_HandleTypeDef *hdma)
   __HAL_I2C_DISABLE_IT(hi2c, I2C_IT_EVT | I2C_IT_ERR);
 
   /* Clear Complete callback */
-  hi2c->hdmatx->XferCpltCallback = NULL;
-  hi2c->hdmarx->XferCpltCallback = NULL;
+//  hi2c->hdmatx->XferCpltCallback = NULL;
+//  hi2c->hdmarx->XferCpltCallback = NULL;
+  if (hi2c->hdmatx != NULL)
+  {
+    hi2c->hdmatx->XferCpltCallback = NULL;
+  }
+  if (hi2c->hdmarx != NULL)
+  {
+    hi2c->hdmarx->XferCpltCallback = NULL;
+  }
 
   if ((((uint32_t)CurrentState & (uint32_t)HAL_I2C_STATE_BUSY_TX) == (uint32_t)HAL_I2C_STATE_BUSY_TX) || ((((uint32_t)CurrentState & (uint32_t)HAL_I2C_STATE_BUSY_RX) == (uint32_t)HAL_I2C_STATE_BUSY_RX) && (CurrentMode == HAL_I2C_MODE_SLAVE)))
   {
@@ -6782,9 +6790,16 @@ static void I2C_DMAError(DMA_HandleTypeDef *hdma)
   I2C_HandleTypeDef *hi2c = (I2C_HandleTypeDef *)((DMA_HandleTypeDef *)hdma)->Parent; /* Derogation MISRAC2012-Rule-11.5 */
 
   /* Clear Complete callback */
-  hi2c->hdmatx->XferCpltCallback = NULL;
-  hi2c->hdmarx->XferCpltCallback = NULL;
-
+//  hi2c->hdmatx->XferCpltCallback = NULL;
+//  hi2c->hdmarx->XferCpltCallback = NULL;
+  if (hi2c->hdmatx != NULL)
+  {
+    hi2c->hdmatx->XferCpltCallback = NULL;
+  }
+  if (hi2c->hdmarx != NULL)
+  {
+    hi2c->hdmarx->XferCpltCallback = NULL;
+  }
   /* Disable Acknowledge */
   CLEAR_BIT(hi2c->Instance->CR1, I2C_CR1_ACK);
 
@@ -6814,9 +6829,16 @@ static void I2C_DMAAbort(DMA_HandleTypeDef *hdma)
   HAL_I2C_StateTypeDef CurrentState = hi2c->State;
 
   /* Clear Complete callback */
-  hi2c->hdmatx->XferCpltCallback = NULL;
-  hi2c->hdmarx->XferCpltCallback = NULL;
-
+//  hi2c->hdmatx->XferCpltCallback = NULL;
+//  hi2c->hdmarx->XferCpltCallback = NULL;
+  if (hi2c->hdmatx != NULL)
+  {
+    hi2c->hdmatx->XferCpltCallback = NULL;
+  }
+  if (hi2c->hdmarx != NULL)
+  {
+    hi2c->hdmarx->XferCpltCallback = NULL;
+  }
   /* Disable Acknowledge */
   CLEAR_BIT(hi2c->Instance->CR1, I2C_CR1_ACK);
 

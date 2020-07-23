@@ -3,7 +3,7 @@
 #ifndef __SEEPROM_H__
 #define __SEEPROM_H__
 
-#include "stm32f4xx_hal.h"
+#include "stm32f1xx_hal.h"
 
 /* M25P SPI EE supported commands */  
 #define sEE_CMD_WRITE          0x02  /* Write to Memory instruction */
@@ -21,9 +21,9 @@
 
 
 /* Select sEE: Chip Select pin low */
-#define sEE_CS_LOW()        HAL_GPIO_WritePin(SPI3_NSS_GPIO_Port, SPI3_NSS_Pin, GPIO_PIN_RESET);
+#define sEE_CS_LOW()        HAL_GPIO_WritePin(SPI2_NSS_GPIO_Port, SPI2_NSS_Pin, GPIO_PIN_RESET);
 /* Deselect sEE: Chip Select pin high */
-#define sEE_CS_HIGH()       HAL_GPIO_WritePin(SPI3_NSS_GPIO_Port, SPI3_NSS_Pin, GPIO_PIN_SET);
+#define sEE_CS_HIGH()       HAL_GPIO_WritePin(SPI2_NSS_GPIO_Port, SPI2_NSS_Pin, GPIO_PIN_SET);
 
 void sEE_ReadBuffer(SPI_HandleTypeDef *hspi, uint8_t* pBuffer, uint16_t ReadAddr, uint16_t NumByteToRead);
 void sEE_WritePage(SPI_HandleTypeDef *hspi, uint8_t* pBuffer, uint32_t WriteAddr, uint16_t NumByteToWrite);

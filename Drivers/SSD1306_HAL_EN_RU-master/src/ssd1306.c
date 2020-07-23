@@ -1,3 +1,7 @@
+//ssd1306.c
+
+#include "stm32f1xx_hal.h"
+
 #include "ssd1306.h"
 #include <string.h>
 #include <stdarg.h>
@@ -154,6 +158,8 @@ char SSD1306_Putspace(FONT_INFO* Font, SSD1306_COLOR_t color) {
   uint8_t width_x = (Font -> spacePixels)*3;
   uint8_t height_y = (Font -> heightPixels); 
   SSD1306_DrawFilledRectangle(SSD1306.CurrentX, SSD1306.CurrentY, width_x, height_y, SSD1306_COLOR_BLACK);
+  /* Increase pointer */
+  SSD1306.CurrentX += width_x;
   /* Return character written */
   return 0x20; //space hex ascii code
 }

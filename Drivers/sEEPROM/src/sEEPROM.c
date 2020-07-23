@@ -1,5 +1,5 @@
 //seeprom.c
-//in CUBE GPIO name of the NSS pin should be "NSS_Pin"
+//in CUBE GPIO name of the NSS pin should be "SPI2_NSS"
 #include "sEEPROM.h"
 #include "main.h" //for spi nss pin definition
 
