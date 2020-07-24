@@ -20,7 +20,9 @@ rule browsedata
 
 
 #Build steps
+build const_var.pbi : index const_var.xcl
 build main.pbi : index main.xcl
+build menu.pbi : index menu.xcl
 build stm32f1xx_hal_msp.pbi : index stm32f1xx_hal_msp.xcl
 build stm32f1xx_it.pbi : index stm32f1xx_it.xcl
 build button_drv.pbi : index button_drv.xcl
@@ -46,12 +48,12 @@ build stm32f1xx_hal_rcc_ex.pbi : index stm32f1xx_hal_rcc_ex.xcl
 build stm32f1xx_hal_spi.pbi : index stm32f1xx_hal_spi.xcl
 build stm32f1xx_hal_tim.pbi : index stm32f1xx_hal_tim.xcl
 build stm32f1xx_hal_tim_ex.pbi : index stm32f1xx_hal_tim_ex.xcl
-build SolderStation_F103_part0.pbi : link main.pbi stm32f1xx_hal_msp.pbi stm32f1xx_it.pbi button_drv.pbi system_stm32f1xx.pbi
-build SolderStation_F103_part1.pbi : link sEEPROM.pbi MicroMenu.pbi ssd1306.pbi ssd1306_fonts.pbi stm32f1xx_hal.pbi
-build SolderStation_F103_part2.pbi : link stm32f1xx_hal_adc.pbi stm32f1xx_hal_adc_ex.pbi stm32f1xx_hal_cortex.pbi stm32f1xx_hal_dma.pbi stm32f1xx_hal_exti.pbi
-build SolderStation_F103_part3.pbi : link stm32f1xx_hal_flash.pbi stm32f1xx_hal_flash_ex.pbi stm32f1xx_hal_gpio.pbi stm32f1xx_hal_gpio_ex.pbi stm32f1xx_hal_i2c.pbi
-build SolderStation_F103_part4.pbi : link stm32f1xx_hal_pwr.pbi stm32f1xx_hal_rcc.pbi stm32f1xx_hal_rcc_ex.pbi stm32f1xx_hal_spi.pbi stm32f1xx_hal_tim.pbi
-build SolderStation_F103_part5.pbi : link stm32f1xx_hal_tim_ex.pbi
+build SolderStation_F103_part0.pbi : link const_var.pbi main.pbi menu.pbi stm32f1xx_hal_msp.pbi stm32f1xx_it.pbi
+build SolderStation_F103_part1.pbi : link button_drv.pbi system_stm32f1xx.pbi sEEPROM.pbi MicroMenu.pbi ssd1306.pbi
+build SolderStation_F103_part2.pbi : link ssd1306_fonts.pbi stm32f1xx_hal.pbi stm32f1xx_hal_adc.pbi stm32f1xx_hal_adc_ex.pbi stm32f1xx_hal_cortex.pbi
+build SolderStation_F103_part3.pbi : link stm32f1xx_hal_dma.pbi stm32f1xx_hal_exti.pbi stm32f1xx_hal_flash.pbi stm32f1xx_hal_flash_ex.pbi stm32f1xx_hal_gpio.pbi
+build SolderStation_F103_part4.pbi : link stm32f1xx_hal_gpio_ex.pbi stm32f1xx_hal_i2c.pbi stm32f1xx_hal_pwr.pbi stm32f1xx_hal_rcc.pbi stm32f1xx_hal_rcc_ex.pbi
+build SolderStation_F103_part5.pbi : link stm32f1xx_hal_spi.pbi stm32f1xx_hal_tim.pbi stm32f1xx_hal_tim_ex.pbi
 build SolderStation_F103.pbd : link SolderStation_F103_part0.pbi SolderStation_F103_part1.pbi SolderStation_F103_part2.pbi SolderStation_F103_part3.pbi SolderStation_F103_part4.pbi SolderStation_F103_part5.pbi
 build SolderStation_F103.pbw : browsedata SolderStation_F103.pbd
 
