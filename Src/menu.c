@@ -125,7 +125,7 @@ uint8_t inputUintCoeff(uint32_t *tmp, uint8_t Kp)
     counter_temp = (__HAL_TIM_GET_COUNTER(&htim2)) / 2;
     SSD1306_DrawFilledRectangle(30, 27, 127, 27, SSD1306_COLOR_BLACK);
     SSD1306_GotoXY(30, 27);     
-    SSD1306_printf(&dSEG7Classic_20ptFontInfo, "%d", counter_temp);
+    SSD1306_printf(&amperzand_24ptFontInfo, "%d", counter_temp);
     SSD1306_UpdateScreen();
     if(BtnCntr_LongPush)//exit setting timeout without eeprom write
     {
@@ -165,7 +165,7 @@ static void SetTimeout(void)
     counter_temp = (__HAL_TIM_GET_COUNTER(&htim2)) / 2;
     SSD1306_DrawFilledRectangle(30, 27, 127, 27, SSD1306_COLOR_BLACK);
     SSD1306_GotoXY(30, 27);     
-    SSD1306_printf(&dSEG7Classic_20ptFontInfo, "%d", counter_temp);
+    SSD1306_printf(&amperzand_24ptFontInfo, "%d", counter_temp);
     SSD1306_UpdateScreen();
     if(BtnCntr_LongPush)//exit setting timeout without eeprom write
     {
@@ -280,7 +280,7 @@ static void Calibrate_solder(void)
     __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, counter_pwm * 100);
     SSD1306_DrawFilledRectangle(30, 27, 127, 27, SSD1306_COLOR_BLACK);
     SSD1306_GotoXY(30, 27);     
-    SSD1306_printf(&dSEG7Classic_20ptFontInfo, "%d",  counter_pwm);
+    SSD1306_printf(&amperzand_24ptFontInfo, "%d",  counter_pwm);
     SSD1306_UpdateScreen();
     if(BtnCntr_LongPush)//reset calibration
     {
@@ -305,7 +305,7 @@ static void Calibrate_solder(void)
     adc_calibration_solder1 = Solder_Thermocouple_adc;
     SSD1306_DrawFilledRectangle(30, 27, 127, 27, SSD1306_COLOR_BLACK);
     SSD1306_GotoXY(30, 27);     
-    SSD1306_printf(&dSEG7Classic_20ptFontInfo, "%d",  counter_temp);
+    SSD1306_printf(&amperzand_24ptFontInfo, "%d",  counter_temp);
     SSD1306_UpdateScreen();
     if(BtnCntr_LongPush)//reset calibration
     {
@@ -329,7 +329,7 @@ static void Calibrate_solder(void)
     __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, counter_pwm * 100);
     SSD1306_DrawFilledRectangle(30, 27, 127, 27, SSD1306_COLOR_BLACK);
     SSD1306_GotoXY(30, 27);     
-    SSD1306_printf(&dSEG7Classic_20ptFontInfo, "%d",  counter_pwm);
+    SSD1306_printf(&amperzand_24ptFontInfo, "%d",  counter_pwm);
     SSD1306_UpdateScreen();
     if(BtnCntr_LongPush)//reset calibration
     {
@@ -354,7 +354,7 @@ static void Calibrate_solder(void)
     adc_calibration_solder2 = Solder_Thermocouple_adc;
     SSD1306_DrawFilledRectangle(30, 27, 127, 27, SSD1306_COLOR_BLACK);
     SSD1306_GotoXY(30, 27);     
-    SSD1306_printf(&dSEG7Classic_20ptFontInfo, "%d",  counter_temp);
+    SSD1306_printf(&amperzand_24ptFontInfo, "%d",  counter_temp);
     SSD1306_UpdateScreen();
     if(BtnCntr_LongPush)//reset calibration
     {

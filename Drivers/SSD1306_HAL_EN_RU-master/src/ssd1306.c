@@ -171,7 +171,7 @@ char SSD1306_Putc(char ch, FONT_INFO* Font, SSD1306_COLOR_t color) {
   
   if(ch == 0x20) return SSD1306_Putspace(Font, color);    // space char
   
-  if(Font == &dSEG7Classic_20ptFontInfo) ch = ch - 12;
+  if(Font == &amperzand_24ptFontInfo) ch = ch - 12;
   
   uint16_t f_height = Font -> heightPixels;
   uint8_t f_width = Font -> charInfo[ch-33].widthBits;

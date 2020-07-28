@@ -528,7 +528,7 @@ int main(void)
     //----------Display information---------------------------------------------
     int16_t T_filtered;
     T_filtered = 0;
-    if(progstate == SOLDER_E)
+    if(progstate == SOLDER_E)//-----------------Solder-------------------------
     {
       for(uint8_t i = 0; i < T_FILTER_N; i++)
       {
@@ -548,7 +548,7 @@ int main(void)
       }
       SSD1306_DrawFilledRectangle(0, 32, 127, 31, SSD1306_COLOR_BLACK);
       SSD1306_GotoXY(10, 35);
-      SSD1306_printf(&dSEG7Classic_20ptFontInfo, "%d",  T_filtered);
+      SSD1306_printf(&amperzand_24ptFontInfo, "%d",  T_filtered);
       SSD1306_GotoXY(90, 48);
       if(!F_solder_timeout)
       {  
@@ -562,7 +562,7 @@ int main(void)
       SSD1306_UpdateScreen();
       HAL_Delay(50);
     }
-    else if(progstate == FAN_E)
+    else if(progstate == FAN_E)//----------------Fan----------------------------
     {
       for(uint8_t i = 0; i < T_FILTER_N; i++)
       {
@@ -582,7 +582,14 @@ int main(void)
       }
       SSD1306_DrawFilledRectangle(0, 32, 127, 31, SSD1306_COLOR_BLACK);
       SSD1306_GotoXY(10, 35);
-      SSD1306_printf(&dSEG7Classic_20ptFontInfo, "%d",  T_filtered);
+      if(T_filtered >= 75)
+      {
+        SSD1306_printf(&amperzand_24ptFontInfo, "%d",  T_filtered);
+      }
+      else
+      {
+        SSD1306_printf(&amperzand_24ptFontInfo, "<75" );
+      }
       SSD1306_GotoXY(100, 0);
       SSD1306_printf(&palatinoLinotype_12ptFontInfo, "%d%%",  Fan_fan_percent);
       if(F_fan_temp_protect || F_fan_blower_protect)
