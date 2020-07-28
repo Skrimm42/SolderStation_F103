@@ -18,11 +18,6 @@
   */
 // 
 //----ADC1-----ADC2------
-//  0, 2, 8, 10  - ADC1.Ch1
-//  4, 6, 12, 14 - ADC1.Ch2
-//  1, 3, 9, 11  - ADC2.Ch3
-//  5, 7, 13, 15 - ADC2.Ch4
-
 //after update ADC1 ch.1 ch.3 ch.1 ch.3
 //             ADC2 ch.2 ch.4 ch.2 ch.4
 // channels in adc_buffer: 1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4
@@ -116,6 +111,10 @@ void fan_working_layout(void)
   SSD1306_Fill(SSD1306_COLOR_BLACK);
   SSD1306_GotoXY(0, 0);
   SSD1306_Puts("Fan", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  SSD1306_GotoXY(0, 16);
+  SSD1306_Puts("Set: ", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  SSD1306_GotoXY(50, 0);
+  SSD1306_Puts("Blower: ", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
 }
 
 void solder_working_layout(void)
@@ -187,13 +186,13 @@ void regulator_fan(void)
   Uy_fan_p = fmaxf(Uy_fan_p, -1.25);
   Uy_fan_p = fminf(Uy_fan_p, 1.25);
   
-  Uy_fan_i = (Uy_fan_i + (tp / T1) * Uy_fan_p) * F_fan;
+  Uy_fan_i = (Uy_fan_i + (tp / T2) * Uy_fan_p) * F_fan;
   Uy_fan_i = fminf(Uy_fan_i, 1);
   Uy_fan_i = fmaxf(Uy_fan_i, 0);
   
-  Uy_fan = Uy_fan_p * K1 + Uy_fan_i;
+  Uy_fan = Uy_fan_p * K2 + Uy_fan_i;
   Uy_fan = fminf(Uy_fan, 1.25);
-  Uy_fan = fmaxf(Uy_fan, 0.5);
+  Uy_fan = fmaxf(Uy_fan, 0.3);
 }
 
 //Get state of the fan handle gerkon and solder handle vibration switch
@@ -201,6 +200,7 @@ void getDiscreteInputs(void)
 {
   bool F_fan_gerkon_tmp, F_solder_switch_tmp;
   static uint8_t F_fan_gerkon_cnt;
+  static bool F_solder_switch_tmp_previous;
   
   //Gerkon with bounce protection
   F_fan_gerkon_tmp = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_10);
@@ -215,7 +215,8 @@ void getDiscreteInputs(void)
   //  Vibration switch. Only changing of this signal is take into account.
   // Need for solder timeout
   F_solder_switch_tmp = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_7);
-  F_solder_switch = !(F_solder_switch ^ F_solder_switch_tmp);
+  F_solder_switch = !(F_solder_switch_tmp ^ F_solder_switch_tmp_previous);
+  F_solder_switch_tmp_previous = F_solder_switch_tmp;
 }
 
 
@@ -271,15 +272,16 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     }
     
     //-----------Solder timeout-------------------------------------------------
-    Solder_timeout_cnt = (Solder_timeout_cnt + 1) * F_solder_switch;
-    if(Solder_timeout_cnt >= TimeoutTime)
+    if((Solder_temp_z - Solder_temp_z_former) != 0) F_encoder_change_value = 0;
+    else F_encoder_change_value = 1; // if encoder changed its value, timeout reset
+    Solder_timeout_cnt = (Solder_timeout_cnt + 1) * (F_solder_switch & F_encoder_change_value);
+    if(Solder_timeout_cnt >= TimeoutTime * 100)
     {
       F_solder_timeout = 0;
-      Solder_timeout_cnt = TimeoutTime;
+      Solder_timeout_cnt = TimeoutTime * 100;
     }
     else F_solder_timeout = 1;
-    F_solder_timeout = 1; //debug
-    
+        
     //---------Protection from Fan thermocouple disconnection-------------------
     if(U_fan_temp > 1.05) F_fan_temp_protect = 1;
     else F_fan_temp_protect = 0;
@@ -293,6 +295,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     //---F_fan-----F_solder-----------------------------------------------------
     F_fan = F_fan_enable & F_fan_gerkon & !F_fan_temp_protect;
     F_solder = F_solder_timeout & F_solder_enable & !F_solder_temp_protect;
+
     
     if((progstate == SOLDER_E) || (progstate == FAN_E)) 
     {
@@ -312,7 +315,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     {
       cnt_filter = 0;
     }
-    
     
     //-------LED blinking-------------------------------------------------------
     if(cnt_slowdown++>50)
@@ -336,7 +338,7 @@ volatile void delay(volatile uint32_t cnt)
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  static uint16_t Solder_temp_z_former, Fan_temp_z_former, cntr;
+  static uint16_t cntr;
   static bool Fcntr;
   
   /* USER CODE END 1 */
@@ -372,10 +374,11 @@ int main(void)
   SSD1306_Init(&hi2c1, 0x78);
   
   Button_Init(&EncBtn, GPIOB, GPIO_PIN_6);
-  
+  HAL_Delay(200);
   //Initiate EEPROM values
-  uint32_t ID_read;
+  __IO uint32_t ID_read;
   sEE_ReadBuffer(&hspi2, (uint8_t*)&ID_read, EE_ID_ADDR, 8);
+  sEE_ReadBuffer(&hspi2, (uint8_t*)&ID_read, EE_ID_ADDR, 8);//Was error here, have to read 2 times
   //ID_read = 0;
   //sEE_WriteBuffer(&hspi2, (uint8_t*)&ID_read, EE_ID_ADDR, 4);
   //ID_read = ID_EE;
@@ -401,6 +404,10 @@ int main(void)
     sEE_WriteBuffer(&hspi2, (uint8_t*)&N_tip_default, EE_TIP_N_ADDR, 1);
     ID_read = ID_EE;
     sEE_WriteBuffer(&hspi2, (uint8_t*)&ID_read, EE_ID_ADDR, 4);
+    
+    SSD1306_Puts("Initial settings done.", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+    SSD1306_UpdateScreen(); 
+    HAL_Delay(2000);
   }
   
   sEE_ReadBuffer(&hspi2, (uint8_t*)&TimeoutTime, EE_TIMEOUT_ADDR, 2);
@@ -427,7 +434,7 @@ int main(void)
   Fan_temp_z_former = Fan_temp_z;
   
   __HAL_TIM_SET_COUNTER(&htim2, Solder_temp_z * 2 + 1);
-  
+  __HAL_TIM_SET_AUTORELOAD(&htim2, 801);
   solder_working_layout();
   
   SSD1306_UpdateScreen(); 
@@ -457,7 +464,7 @@ int main(void)
         Fcntr = 1;
       }
       cntr += Fcntr;
-      if(cntr >= 100)
+      if(cntr >= 40)
       {
         cntr = 0;
         Fcntr = 0;
@@ -475,12 +482,14 @@ int main(void)
       {
         progstate = FAN_E;
         __HAL_TIM_SET_COUNTER(&htim2, Fan_temp_z * 2 + 1);
+        __HAL_TIM_SET_AUTORELOAD(&htim2, 901);
         fan_working_layout();
       }
       else if(progstate == FAN_E) 
       {
         progstate = SOLDER_E;
         __HAL_TIM_SET_COUNTER(&htim2, Solder_temp_z * 2 + 1);
+        __HAL_TIM_SET_AUTORELOAD(&htim2, 801);
         solder_working_layout();
       }
       BtnCntr_ShortPush = 0;
@@ -516,7 +525,7 @@ int main(void)
       else fan_working_layout();
     }
     
-    //Display information
+    //----------Display information---------------------------------------------
     int16_t T_filtered;
     T_filtered = 0;
     if(progstate == SOLDER_E)
@@ -529,10 +538,27 @@ int main(void)
       
       SSD1306_DrawFilledRectangle(96, 16, 31, 16, SSD1306_COLOR_BLACK);
       SSD1306_GotoXY(96, 19);
-      SSD1306_printf(&palatinoLinotype_12ptFontInfo, "%d",  Solder_temp_z);
+      if(F_solder_enable)
+      {  
+        SSD1306_printf(&palatinoLinotype_12ptFontInfo, "%d",  Solder_temp_z);
+      }
+      else
+      {
+        SSD1306_printf(&palatinoLinotype_12ptFontInfo, "Off");
+      }
       SSD1306_DrawFilledRectangle(0, 32, 127, 31, SSD1306_COLOR_BLACK);
       SSD1306_GotoXY(10, 35);
       SSD1306_printf(&dSEG7Classic_20ptFontInfo, "%d",  T_filtered);
+      SSD1306_GotoXY(90, 48);
+      if(!F_solder_timeout)
+      {  
+        SSD1306_Puts("Time", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+      }
+      SSD1306_GotoXY(90, 38);
+      if(F_solder_temp_protect)
+      {
+        SSD1306_Puts("Err!", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+      }
       SSD1306_UpdateScreen();
       HAL_Delay(50);
     }
@@ -544,14 +570,35 @@ int main(void)
       }
       T_filtered /= T_FILTER_N;
       
-      SSD1306_DrawFilledRectangle(96, 16, 31, 16, SSD1306_COLOR_BLACK);
+      SSD1306_DrawFilledRectangle(96, 0, 31, 48, SSD1306_COLOR_BLACK);
       SSD1306_GotoXY(96, 19);
-      SSD1306_printf(&palatinoLinotype_12ptFontInfo, "%d",  Fan_temp_z);
+      if(F_fan_enable)
+      {
+        SSD1306_printf(&palatinoLinotype_12ptFontInfo, "%d",  Fan_temp_z);
+      }
+      else 
+      {
+        SSD1306_printf(&palatinoLinotype_12ptFontInfo, "Off");
+      }
       SSD1306_DrawFilledRectangle(0, 32, 127, 31, SSD1306_COLOR_BLACK);
       SSD1306_GotoXY(10, 35);
       SSD1306_printf(&dSEG7Classic_20ptFontInfo, "%d",  T_filtered);
-      SSD1306_GotoXY(115, 45);
-      SSD1306_printf(&palatinoLinotype_12ptFontInfo, "%d %",  Fan_fan_percent);
+      SSD1306_GotoXY(100, 0);
+      SSD1306_printf(&palatinoLinotype_12ptFontInfo, "%d%%",  Fan_fan_percent);
+      if(F_fan_temp_protect || F_fan_blower_protect)
+      {
+        SSD1306_GotoXY(90, 38);
+         SSD1306_Puts("Err!", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+      }
+      SSD1306_GotoXY(90, 50);
+      if(F_fan_gerkon)
+      {
+         SSD1306_Puts("On", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+      }
+      else
+      {
+        SSD1306_Puts("Off", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+      }
       SSD1306_UpdateScreen();
       HAL_Delay(50);
     }

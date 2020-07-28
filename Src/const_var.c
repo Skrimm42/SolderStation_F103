@@ -31,7 +31,7 @@ const float K1 = 20, K2 = 20, T1 = 0.3, T2 = 0.3, tp = 0.01;
 
 bool F_solder, F_solder_switch, F_solder_timeout = 1, F_solder_enable, F_fan, 
      F_fan_enable, F_fan_gerkon, F_fan_temp_protect, F_solder_temp_protect, 
-     F_fan_blower_protect;
+     F_fan_blower_protect, F_encoder_change_value;
 bool BtnCntr_ShortPush, BtnCntr_LongPush, BtnCntr_Menu;
 
 int16_t Solder_filter_array[T_FILTER_N + 1];

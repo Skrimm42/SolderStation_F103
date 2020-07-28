@@ -69,7 +69,7 @@ extern const float K1, K2, T1, T2, tp;
 
 extern bool F_solder, F_solder_switch, F_solder_timeout, F_solder_enable, F_fan, 
      F_fan_enable, F_fan_gerkon, F_fan_temp_protect, F_solder_temp_protect, 
-     F_fan_blower_protect;
+     F_fan_blower_protect, F_encoder_change_value;
 extern bool BtnCntr_ShortPush, BtnCntr_LongPush, BtnCntr_Menu;
 
 extern int16_t Solder_filter_array[T_FILTER_N + 1];
