@@ -1,6 +1,6 @@
 ###############################################################################
 #
-# IAR ELF Linker V8.50.4.261/W32 for ARM                  28/Jul/2020  18:23:48
+# IAR ELF Linker V8.50.4.261/W32 for ARM                  14/Aug/2020  21:42:43
 # Copyright 2007-2020 IAR Systems AB.
 #
 #    Output file  =
@@ -8,7 +8,7 @@
 #    Map file     =
 #        D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\EWARM\SolderStation_F103\List\SolderStation_F103.map
 #    Command line =
-#        -f C:\Users\SS\AppData\Local\Temp\EW557F.tmp
+#        -f C:\Users\denpr\AppData\Local\Temp\EW1288.tmp
 #        (D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\EWARM\SolderStation_F103\Obj\button_drv.o
 #        D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\EWARM\SolderStation_F103\Obj\const_var.o
 #        D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\EWARM\SolderStation_F103\Obj\main.o

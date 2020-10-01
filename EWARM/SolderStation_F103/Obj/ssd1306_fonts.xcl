@@ -29,9 +29,9 @@ D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\EWARM/../Dri
 -I
 D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\EWARM/../Drivers/Buttons_drv/inc\
 -I
-C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.5\arm\inc
+C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.4\arm\inc
 -I
-C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.5\arm\inc\c
+C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.4\arm\inc\c
 -I
 D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\Inc
 -I
@@ -327,8 +327,8 @@ D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\Drivers\Butt
 -D__EDG_INT128_EXTENSIONS_ALLOWED=0
 -DUSE_HAL_DRIVER=1
 -DSTM32F103xB=1
--D_DLIB_CONFIG_FILE_HEADER_NAME="C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.5\arm\inc\c\DLib_Config_Full.h"
--D_DLIB_CONFIG_FILE_STRING="C:\\Program Files (x86)\\IAR Systems\\Embedded Workbench 8.5\\arm\\inc\\c\\DLib_Config_Full.h"
+-D_DLIB_CONFIG_FILE_HEADER_NAME="C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.4\arm\inc\c\DLib_Config_Full.h"
+-D_DLIB_CONFIG_FILE_STRING="C:\\Program Files (x86)\\IAR Systems\\Embedded Workbench 8.4\\arm\\inc\\c\\DLib_Config_Full.h"
 -D__VERSION__="IAR ANSI C/C++ Compiler V8.50.4.261/W32 for ARM"
 -D_VA_DEFINED=
 -D_VA_LIST=struct __va_list
