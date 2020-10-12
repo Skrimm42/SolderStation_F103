@@ -388,6 +388,34 @@ static void Calibrate_solder(void)
 
 static void Calibrate_fan(void)
 {
+  uint16_t counter_pwm;
+  
+   ENCODER_NO_ROLLOVER
+  
+  //Start Point PWM
+  BtnCntr_Menu = 0;
+  SSD1306_DrawFilledRectangle(0, 17, 127, 46, SSD1306_COLOR_BLACK);
+  SSD1306_GotoXY(1, 17);
+  SSD1306_Puts( "Enter Start PWM", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  __HAL_TIM_SET_COUNTER(&htim2, 201);
+  __HAL_TIM_SET_AUTORELOAD(&htim2, 201);
+
+  while(!BtnCntr_Menu)
+  {
+    counter_pwm = (__HAL_TIM_GET_COUNTER(&htim2) / 2);
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, counter_pwm * (MAX_CCR_LOAD_FAN / 100));
+    SSD1306_DrawFilledRectangle(30, 27, 127, 27, SSD1306_COLOR_BLACK);
+    SSD1306_GotoXY(30, 27);     
+    SSD1306_printf(&amperzand_24ptFontInfo, "%d",  counter_pwm);
+    SSD1306_UpdateScreen();
+    if(BtnCntr_LongPush)//reset calibration
+    {
+      BtnCntr_LongPush = 0;
+      __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, MAX_CCR_LOAD_FAN);
+      return;
+    }
+    HAL_Delay(50);
+  }
   
 }
 
