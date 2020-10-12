@@ -104,9 +104,9 @@ void fan_working_layout(void)
 {
   progstate = FAN_E;
   
-  __IO uint16_t tim1cr1 = TIM1 -> CR1;
+  __IO uint16_t tim1cr1 = TIM2 -> CR1;
   tim1cr1 |= 0x0060; //CMS = 11, encoder value max = arr, no rollover 
-  TIM1 -> CR1 = tim1cr1;
+  TIM2 -> CR1 = tim1cr1;
   
   SSD1306_Fill(SSD1306_COLOR_BLACK);
   SSD1306_GotoXY(0, 0);
@@ -120,10 +120,10 @@ void fan_working_layout(void)
 void solder_working_layout(void)
 {
  
-  __IO uint16_t tim1cr1 = TIM1 -> CR1;
+  __IO uint16_t tim1cr1 = TIM2 -> CR1;
   tim1cr1 |= 0x0060; //CMS = 11, encoder value max = arr, no rollover 
-  TIM1 -> CR1 = tim1cr1;
-  __HAL_TIM_SET_COUNTER(&htim1, Solder_temp_z * 2 + 1); 
+  TIM2 -> CR1 = tim1cr1;
+  __HAL_TIM_SET_COUNTER(&htim2, Solder_temp_z * 2 + 1); 
   progstate = SOLDER_E;
     
   SSD1306_Fill(SSD1306_COLOR_BLACK);
@@ -374,7 +374,9 @@ int main(void)
   SSD1306_Init(&hi2c1, 0x78);
   
   Button_Init(&EncBtn, GPIOB, GPIO_PIN_6);
+    
   HAL_Delay(200);
+  
   //Initiate EEPROM values
   __IO uint32_t ID_read;
   sEE_ReadBuffer(&hspi2, (uint8_t*)&ID_read, EE_ID_ADDR, 8);
@@ -382,6 +384,9 @@ int main(void)
   //ID_read = 0;
   //sEE_WriteBuffer(&hspi2, (uint8_t*)&ID_read, EE_ID_ADDR, 4);
   //ID_read = ID_EE;
+  
+
+  
   if(ID_read != ID_EE)
   {
     //k and b scaling coeffs for solder tips
@@ -408,8 +413,7 @@ int main(void)
     SSD1306_Puts("Initial settings done.", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
     SSD1306_UpdateScreen(); 
     HAL_Delay(2000);
-  }
-  
+  } 
   sEE_ReadBuffer(&hspi2, (uint8_t*)&TimeoutTime, EE_TIMEOUT_ADDR, 2);
   
   sEE_ReadBuffer(&hspi2, (uint8_t*)&Solder_temp_z, EE_TEMP_Z_SOLDER_ADDR, 2);
@@ -424,28 +428,27 @@ int main(void)
   sEE_ReadBuffer(&hspi2, (uint8_t*)&k_fan, EE_CAL_COEFF_FAN_ADDR, 4);
   sEE_ReadBuffer(&hspi2, (uint8_t*)&b_fan, EE_CAL_COEFF_FAN_ADDR + 4, 4);
   
-  //ADC DMA in circular mode
+  Solder_temp_z_former = Solder_temp_z;
+  Fan_temp_z_former = Fan_temp_z;
+  
+  
+  __HAL_TIM_SET_COUNTER(&htim2, Solder_temp_z * 2 + 1);
+  __HAL_TIM_SET_AUTORELOAD(&htim2, 801);
+   
+  solder_working_layout();
+  
+    //ADC DMA in circular mode
   HAL_ADCEx_Calibration_Start(&hadc1);
   HAL_ADCEx_Calibration_Start(&hadc2);
   HAL_ADC_Start(&hadc2);
   HAL_ADCEx_MultiModeStart_DMA(&hadc1, (uint32_t*)&adc_buffer, 8);
   
-  Solder_temp_z_former = Solder_temp_z;
-  Fan_temp_z_former = Fan_temp_z;
-  
-  __HAL_TIM_SET_COUNTER(&htim2, Solder_temp_z * 2 + 1);
-  __HAL_TIM_SET_AUTORELOAD(&htim2, 801);
-  solder_working_layout();
-  
-  SSD1306_UpdateScreen(); 
-  
   HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_1);
-  
   HAL_TIM_Base_Start_IT(&htim3);
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
   
-  
+  SSD1306_UpdateScreen(); 
   
   /* USER CODE END 2 */
 
