@@ -211,8 +211,16 @@ static void Reset_solder(void)
 }
  
 static void Reset_fan(void)
-{
-  
+{  
+  sEE_WriteBuffer(&hspi2, (uint8_t*)&k_fan_default, EE_CAL_COEFF_FAN_ADDR, 4);
+  sEE_WriteBuffer(&hspi2, (uint8_t*)&b_fan_default, EE_CAL_COEFF_FAN_ADDR + 4, 4);
+  k_fan = k_fan_default;
+  b_fan = b_fan_default;
+  SSD1306_DrawFilledRectangle(0, 17, 127, 46, SSD1306_COLOR_BLACK);
+  SSD1306_GotoXY(5, 25);
+  SSD1306_Puts("Fan coeffs are reset", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  SSD1306_UpdateScreen();
+  HAL_Delay(3000);
 }
 
 static void getN_Solder_tip(void)
@@ -388,18 +396,19 @@ static void Calibrate_solder(void)
 
 static void Calibrate_fan(void)
 {
-  uint16_t counter_pwm;
+  static float temp_calibration_fan1, adc_calibration_fan1, temp_calibration_fan2, adc_calibration_fan2;
+  uint16_t counter_pwm, counter_temp;
   
-   ENCODER_NO_ROLLOVER
-  
-  //Start Point PWM
-  BtnCntr_Menu = 0;
+  ENCODER_NO_ROLLOVER
+    
+    //Start Point PWM
+    BtnCntr_Menu = 0;
   SSD1306_DrawFilledRectangle(0, 17, 127, 46, SSD1306_COLOR_BLACK);
   SSD1306_GotoXY(1, 17);
   SSD1306_Puts( "Enter Start PWM", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
   __HAL_TIM_SET_COUNTER(&htim2, 201);
   __HAL_TIM_SET_AUTORELOAD(&htim2, 201);
-
+  
   while(!BtnCntr_Menu)
   {
     counter_pwm = (__HAL_TIM_GET_COUNTER(&htim2) / 2);
@@ -417,6 +426,95 @@ static void Calibrate_fan(void)
     HAL_Delay(50);
   }
   
+  //Start temperature
+  BtnCntr_Menu = 0;
+  SSD1306_DrawFilledRectangle(0, 17, 127, 46, SSD1306_COLOR_BLACK);
+  SSD1306_GotoXY(1, 17);
+  SSD1306_Puts( "Enter temperature1", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  __HAL_TIM_SET_COUNTER(&htim2, 201);
+  __HAL_TIM_SET_AUTORELOAD(&htim2, 801);
+  while(!BtnCntr_Menu)
+  {
+    counter_temp = (__HAL_TIM_GET_COUNTER(&htim2) / 2);
+    temp_calibration_fan1 = counter_temp;
+    adc_calibration_fan1 = Fan_Thermocouple_adc;
+    SSD1306_DrawFilledRectangle(30, 27, 127, 27, SSD1306_COLOR_BLACK);
+    SSD1306_GotoXY(30, 27);     
+    SSD1306_printf(&amperzand_24ptFontInfo, "%d",  counter_temp);
+    SSD1306_UpdateScreen();
+    if(BtnCntr_LongPush)//reset calibration
+    {
+      BtnCntr_LongPush = 0;
+      __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, MAX_CCR_LOAD_FAN);
+      return;
+    }
+    HAL_Delay(50);
+  }
+  
+  //End Point PWM
+  BtnCntr_Menu = 0;
+  SSD1306_DrawFilledRectangle(0, 17, 127, 46, SSD1306_COLOR_BLACK);
+  SSD1306_GotoXY(1, 17);
+  SSD1306_Puts( "Enter End PWM", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  __HAL_TIM_SET_COUNTER(&htim2, counter_pwm * 2 + 1);
+  __HAL_TIM_SET_AUTORELOAD(&htim2, 201);
+  while(!BtnCntr_Menu)
+  {
+    uint16_t counter_pwm = (__HAL_TIM_GET_COUNTER(&htim2) / 2);
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, counter_pwm * (MAX_CCR_LOAD_FAN / 100));
+    SSD1306_DrawFilledRectangle(30, 27, 127, 27, SSD1306_COLOR_BLACK);
+    SSD1306_GotoXY(30, 27);     
+    SSD1306_printf(&amperzand_24ptFontInfo, "%d",  counter_pwm);
+    SSD1306_UpdateScreen();
+    if(BtnCntr_LongPush)//reset calibration
+    {
+      BtnCntr_LongPush = 0;
+      __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, MAX_CCR_LOAD_FAN);
+      return;
+    }
+    HAL_Delay(50);
+  }
+  
+  //End temperature
+  BtnCntr_Menu = 0;
+  SSD1306_DrawFilledRectangle(0, 17, 127, 46, SSD1306_COLOR_BLACK);
+  SSD1306_GotoXY(1, 17);
+  SSD1306_Puts( "Enter temperature2", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  __HAL_TIM_SET_COUNTER(&htim2, counter_temp * 2 + 1);
+  __HAL_TIM_SET_AUTORELOAD(&htim2, 801);
+  while(!BtnCntr_Menu)
+  {
+    counter_temp = (__HAL_TIM_GET_COUNTER(&htim2) / 2);
+    temp_calibration_fan2 = counter_temp;
+    adc_calibration_fan2 = Fan_Thermocouple_adc;
+    SSD1306_DrawFilledRectangle(30, 27, 127, 27, SSD1306_COLOR_BLACK);
+    SSD1306_GotoXY(30, 27);     
+    SSD1306_printf(&amperzand_24ptFontInfo, "%d",  counter_temp);
+    SSD1306_UpdateScreen();
+    if(BtnCntr_LongPush)//reset calibration
+    {
+      BtnCntr_LongPush = 0;
+      __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, MAX_CCR_LOAD_FAN);
+      return;
+    }
+    HAL_Delay(50);
+  }
+  
+  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, MAX_CCR_LOAD_FAN);
+  
+  k_fan = (temp_calibration_fan2 - temp_calibration_fan1) / (adc_calibration_fan2 - adc_calibration_fan1);
+  b_fan = temp_calibration_fan1 - k_fan * adc_calibration_fan1;
+  
+  sEE_WriteBuffer(&hspi2, (uint8_t*)&k_fan, EE_CAL_COEFF_FAN_ADDR, 4);
+  sEE_WriteBuffer(&hspi2, (uint8_t*)&b_fan, EE_CAL_COEFF_FAN_ADDR + 4, 4);
+  
+  BtnCntr_Menu = 0;
+  ENCODER_ROLLOVER
+  SSD1306_DrawFilledRectangle(0, 17, 127, 46, SSD1306_COLOR_BLACK);
+  SSD1306_GotoXY(1, 27);
+  SSD1306_Puts( "Calibration finished", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  SSD1306_UpdateScreen();
+  HAL_Delay(3000);
 }
 
 

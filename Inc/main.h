@@ -58,6 +58,7 @@ void Error_Handler(void);
 /* USER CODE BEGIN EFP */
 void fan_working_layout(void);
 void solder_working_layout(void);
+void blower_fan_manage(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

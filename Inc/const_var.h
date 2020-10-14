@@ -77,6 +77,6 @@ extern int16_t Fan_filter_array[T_FILTER_N + 1];
 
 extern const char strNULL[];
 extern uint8_t Kp_Solder;
-
+extern bool K_blower_flush, K_blower_off;
 
 #endif//__CONST_VAR_H__

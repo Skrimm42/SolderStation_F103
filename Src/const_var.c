@@ -41,3 +41,7 @@ int16_t Fan_filter_array[T_FILTER_N + 1];
 const char strNULL[] = "";
 
 uint8_t Kp_Solder = 20;
+
+bool K_blower_flush = 1, K_blower_off = 1;
+    
+    
