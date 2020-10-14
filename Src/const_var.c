@@ -26,7 +26,7 @@ uint16_t Solder_Thermocouple_adc, Fan_Thermocouple_adc, Fan_fan_adc;
 int16_t Solder_Thermocouple_temp, Fan_Thermocouple_temp;
 float U_solder_temp, U_solder_temp_z, Uy_solder_p, Uy_solder_i, Uy_solder;
 float U_fan_temp, U_fan_temp_z, Uy_fan_p, Uy_fan_i, Uy_fan;
-const float K1 = 5, K2 = 20, T1 = 0.3, T2 = 0.3, tp = 0.01; 
+const float K1 = 5, K2 = 15, T1 = 0.3, T2 = 0.3, tp = 0.01; 
 
 
 bool F_solder, F_solder_switch, F_solder_timeout = 1, F_solder_enable, F_fan, 

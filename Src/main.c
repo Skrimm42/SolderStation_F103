@@ -150,7 +150,7 @@ void getADC_values(void)
   Fan_fan_adc  /= 4;
   
   //---------Normalization------------------------------------------------------
-  Fan_Thermocouple_temp = (int16_t)((float)Fan_Thermocouple_adc * k_fan + b_fan);// - 25 * !F_fan_gerkon; //Compensate gercon pullup resistor 1kOhm
+  Fan_Thermocouple_temp = (int16_t)((float)Fan_Thermocouple_adc * k_fan + b_fan) - 16 * !F_fan_gerkon; //Compensate gercon pullup resistor 1kOhm
   U_fan_temp = (float)Fan_Thermocouple_temp / 450.0f;
   U_fan_temp_z = (float)Fan_temp_z / 450.0f;
   
@@ -224,26 +224,26 @@ void blower_fan_manage(void)
   static bool F_blower_block;
   
   //Turn Off blower
-//  if((F_fan_gerkon == 0) && ((Fan_Thermocouple_temp <= 100) || (F_blower_block == 1)))
-//  {
-//    K_blower_flush = 1;
-//    K_blower_off = 0;
-//    F_blower_block = 1;
-//  }
-//  //Flush
-//  if((F_fan_gerkon == 0) && (Fan_Thermocouple_temp > 100) && (F_blower_block == 0))
-//  {
-//    K_blower_flush = 0;
-//    K_blower_off = 1;
-//  }
-//  //Working
-//  if(F_fan_gerkon == 1)
-//  {
-//    K_blower_flush = 1;
-//    K_blower_off = 1;
-//    F_blower_block = 0;
-//  }
-  
+  if((F_fan_gerkon == 0) && ((Fan_Thermocouple_temp <= FAN_FLUSH_TEMPERATURE) || (F_blower_block == 1)))
+  {
+    K_blower_flush = 1;
+    K_blower_off = 0;
+    F_blower_block = 1;
+  }
+  //Flush
+  if((F_fan_gerkon == 0) && (Fan_Thermocouple_temp > FAN_FLUSH_TEMPERATURE) && (F_blower_block == 0))
+  {
+    K_blower_flush = 0;
+    K_blower_off = 1;
+  }
+  //Working
+  if(F_fan_gerkon == 1)
+  {
+    K_blower_flush = 1;
+    K_blower_off = 1;
+    F_blower_block = 0;
+  }
+  // Set outputs
   if(K_blower_flush) HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11, GPIO_PIN_SET);
   else HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11, GPIO_PIN_RESET);
   
@@ -256,7 +256,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   static uint16_t cnt_slowdown;
   static uint16_t Solder_timeout_cnt;
-  static uint8_t cnt_filter;
+
   uint16_t Fan_CCR_Load, Solder_CCR_Load;
 
   if (htim->Instance==TIM3) //check if the interrupt comes from TIM3(Solder PWM)
@@ -327,6 +327,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     F_solder = F_solder_timeout & F_solder_enable & !F_solder_temp_protect;
 
     blower_fan_manage(); //Blower flush and on/off 
+    
     if((progstate == SOLDER_E) || (progstate == FAN_E)) 
     {
       regulator_solder();
@@ -337,13 +338,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
       
       __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, Solder_CCR_Load); 
       __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, Fan_CCR_Load); 
-    }
-    //--------Filtering temperature to display----------------------------------
-    Solder_filter_array[cnt_filter] = Solder_Thermocouple_temp;
-    Fan_filter_array[cnt_filter] = Fan_Thermocouple_temp;
-    if(++cnt_filter >= T_FILTER_N)
-    {
-      cnt_filter = 0;
     }
     
     //-------LED blinking-------------------------------------------------------
@@ -373,7 +367,7 @@ int main(void)
   /* USER CODE BEGIN 1 */
   static uint16_t cntr;
   static bool Fcntr;
-  
+  static uint8_t cnt_filter; //filtering temperature for display
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -562,8 +556,18 @@ int main(void)
     }
     
     //----------Display information---------------------------------------------
-    int16_t T_filtered;
+    int32_t T_filtered;
     T_filtered = 0;
+    
+    //Filtering temperature for display
+    Solder_filter_array[cnt_filter] = Solder_Thermocouple_temp;
+    Fan_filter_array[cnt_filter] = Fan_Thermocouple_temp;
+    if(++cnt_filter >= T_FILTER_N)
+    {
+      cnt_filter = 0;
+    }
+    
+    
     if(progstate == SOLDER_E)//-----------------Solder-------------------------
     {
       for(uint8_t i = 0; i < T_FILTER_N; i++)
@@ -618,14 +622,14 @@ int main(void)
       }
       SSD1306_DrawFilledRectangle(0, 32, 127, 31, SSD1306_COLOR_BLACK);
       SSD1306_GotoXY(10, 35);
-      if(T_filtered >= 75)
-      {
+//      if(T_filtered >= 75)
+//      {
         SSD1306_printf(&amperzand_24ptFontInfo, "%d",  T_filtered);
-      }
-      else
-      {
-        SSD1306_printf(&amperzand_24ptFontInfo, "<75" );
-      }
+//      }
+//      else
+//      {
+//        SSD1306_printf(&amperzand_24ptFontInfo, "<75" );
+//      }
       SSD1306_GotoXY(95, 0);
       SSD1306_printf(&palatinoLinotype_12ptFontInfo, "%d%%",  Fan_fan_percent);
       if(F_fan_temp_protect || F_fan_blower_protect)

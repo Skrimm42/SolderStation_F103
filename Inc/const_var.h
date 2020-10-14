@@ -7,11 +7,13 @@
 #include <stdbool.h>
 #include "button_drv.h"
 
-#define T_FILTER_N 10
+#define T_FILTER_N 30
 
 
 #define MAX_CCR_LOAD_SOLDER 10000
 #define MAX_CCR_LOAD_FAN    10200
+
+#define FAN_FLUSH_TEMPERATURE 75
 
 #define ID_EE                           0xDEADBEEF
 #define EE_ID_ADDR                      0x0020
@@ -31,8 +33,6 @@
 #define FAN_MIN_TEMP_Z    99
 
 #define DEBOUNCE          5
-
-#define T_FILTER_N       10
 
 typedef enum  
 {
