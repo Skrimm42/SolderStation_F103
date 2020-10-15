@@ -264,6 +264,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     delay(7000);
     HAL_ADC_Start(&hadc1);
     getButtonState(&EncBtn);
+    getButtonState(&Solder_off_btn);
+    
     if(EncBtn.LongPush) BtnCntr_LongPush = 1;
     if(EncBtn.ShortPush) BtnCntr_ShortPush = 1;
     if(progstate == MENU_E) //Duplicate for menu
@@ -273,14 +275,29 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     
     getADC_values();    
     getDiscreteInputs(); //Fan gerkon and solder handle vibration switch
-    
+        
     //---------Encoder----------------------------------------------------------
     //--if encoder value is less than SOLDER_MIN_TEMP_Z or FAN_MIN_TEMP_Z, 
     // the correspinding devise is switch off
     uint16_t counter = __HAL_TIM_GET_COUNTER(&htim2);
     if(progstate == SOLDER_E)
     {    
-      Solder_temp_z = (uint16_t)(counter / 2);
+      //--------Solder Switch_off button------------------------------------------
+      if(Solder_off_btn.ShortPush) 
+      {
+        F_solder_btn_off = !F_solder_btn_off;
+        // sEE_WriteBuffer(&hspi2, (uint8_t*)&F_solder_btn_off, EE_BTNOFF_SOLDER_ADDR, 1);
+      }
+      
+      if(F_solder_btn_off)//If button not press
+      {
+        Solder_temp_z = (uint16_t)(counter / 2);
+      }
+      else 
+      {
+        __HAL_TIM_SET_COUNTER(&htim2, Solder_temp_z * 2 + 1); //Freeze encoder input
+      }
+      
       if(Solder_temp_z <= SOLDER_MIN_TEMP_Z)//Switch off the iron with encoder
       {
         __HAL_TIM_SET_COUNTER(&htim2, SOLDER_MIN_TEMP_Z * 2 + 1);
@@ -301,6 +318,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
       else F_fan_enable = 1;
     }
     
+
     //-----------Solder timeout-------------------------------------------------
     if((Solder_temp_z - Solder_temp_z_former) != 0) F_encoder_change_value = 0;
     else F_encoder_change_value = 1; // if encoder changed its value, timeout reset
@@ -324,7 +342,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     
     //---F_fan-----F_solder-----------------------------------------------------
     F_fan = F_fan_enable & F_fan_gerkon & !F_fan_temp_protect;
-    F_solder = F_solder_timeout & F_solder_enable & !F_solder_temp_protect;
+    F_solder = F_solder_timeout & F_solder_enable & !F_solder_temp_protect & F_solder_btn_off;
 
     blower_fan_manage(); //Blower flush and on/off 
     
@@ -346,9 +364,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
       cnt_slowdown = 0;
       HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
     }
-    
-   
-    
   }
 }
 
@@ -401,7 +416,8 @@ int main(void)
   SSD1306_Init(&hi2c1, 0x78);
   
   Button_Init(&EncBtn, GPIOB, GPIO_PIN_6);
-    
+  Button_Init(&Solder_off_btn, GPIOC, GPIO_PIN_14);  
+  
   HAL_Delay(200);
   
   //Initiate EEPROM values
@@ -578,7 +594,7 @@ int main(void)
       
       SSD1306_DrawFilledRectangle(96, 16, 31, 16, SSD1306_COLOR_BLACK);
       SSD1306_GotoXY(96, 19);
-      if(F_solder_enable)
+      if(F_solder_enable && F_solder_btn_off)
       {  
         SSD1306_printf(&palatinoLinotype_12ptFontInfo, "%d",  Solder_temp_z);
       }
@@ -1143,8 +1159,8 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(SPI2_NSS_GPIO_Port, SPI2_NSS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11|GPIO_PIN_12, GPIO_PIN_SET);
-
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_RESET);
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET);
 

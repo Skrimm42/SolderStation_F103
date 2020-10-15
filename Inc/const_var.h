@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include "button_drv.h"
 
-#define T_FILTER_N 30
+#define T_FILTER_N 20
 
 
 #define MAX_CCR_LOAD_SOLDER 10000
@@ -27,6 +27,7 @@
 #define EE_KP_FAN_ADDR                  0x00C4
 #define EE_KI_SOLDER_ADDR               0x00C8
 #define EE_KI_FAN_ADDR                  0x00CC
+#define EE_BTNOFF_SOLDER_ADDR           0x00D0
 
 
 #define SOLDER_MIN_TEMP_Z 99
@@ -41,7 +42,7 @@ typedef enum
   MENU_E
 }ProgState;
 
-extern ButtonStateTypeDef EncBtn;
+extern ButtonStateTypeDef EncBtn, Solder_off_btn;
 
 extern ProgState progstate, prog_state_previous;
 
@@ -69,7 +70,7 @@ extern const float K1, K2, T1, T2, tp;
 
 extern bool F_solder, F_solder_switch, F_solder_timeout, F_solder_enable, F_fan, 
      F_fan_enable, F_fan_gerkon, F_fan_temp_protect, F_solder_temp_protect, 
-     F_fan_blower_protect, F_encoder_change_value;
+     F_fan_blower_protect, F_encoder_change_value, F_solder_btn_off;
 extern bool BtnCntr_ShortPush, BtnCntr_LongPush, BtnCntr_Menu;
 
 extern int16_t Solder_filter_array[T_FILTER_N + 1];
