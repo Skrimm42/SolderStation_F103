@@ -43,6 +43,7 @@ extern FONT_INFO dSEG7Classic_20ptFontInfo;
 extern FONT_INFO lessPerfectDOSVGA_13ptFontInfo;
 extern FONT_INFO mSGothic_12ptFontInfo;
 extern FONT_INFO segoeUI_8ptFontInfo;
+extern FONT_INFO amperzand_24ptFontInfo;
 /* C++ detection */
 #ifdef __cplusplus
 }

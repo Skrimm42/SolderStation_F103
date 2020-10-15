@@ -29,9 +29,9 @@ D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\EWARM/../Dri
 -I
 D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\EWARM/../Drivers/Buttons_drv/inc\
 -I
-C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.5\arm\inc
+C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.4\arm\inc
 -I
-C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.5\arm\inc\c
+C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.4\arm\inc\c
 -I
 D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\Inc
 -I
@@ -200,8 +200,8 @@ D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\Drivers\Butt
 -D__JMP_BUF_ELEMENT_TYPE__=unsigned long long int
 -D__JMP_BUF_NUM_ELEMENTS__=8
 -D__TID__=0xcf60
--D__VER__=8050004
--D__BUILD_NUMBER__=261
+-D__VER__=8050006
+-D__BUILD_NUMBER__=265
 -D__IAR_SYSTEMS_ICC__=9
 -D_MAX_ALIGNMENT=8
 -D__LITTLE_ENDIAN__=1
@@ -279,8 +279,8 @@ D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\Drivers\Butt
 -D__HAS_JOINED_TYPES__=1
 -D__HAS_LOCATED_DECLARATION__=1
 -D__HAS_LOCATED_WITH_INIT__=1
--D__IAR_COMPILERBASE__=656904
--D__IAR_COMPILERBASE_STR__=10.6.8.1259
+-D__IAR_COMPILERBASE__=656905
+-D__IAR_COMPILERBASE_STR__=10.6.9.1264
 -D__UNICODE_SOURCE_SUPPORTED__=1
 -D__VTABLE_MEM__=
 -D__PRAGMA_REDEFINE_EXTNAME=1
@@ -327,9 +327,9 @@ D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\Drivers\Butt
 -D__EDG_INT128_EXTENSIONS_ALLOWED=0
 -DUSE_HAL_DRIVER=1
 -DSTM32F103xB=1
--D_DLIB_CONFIG_FILE_HEADER_NAME="C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.5\arm\inc\c\DLib_Config_Full.h"
--D_DLIB_CONFIG_FILE_STRING="C:\\Program Files (x86)\\IAR Systems\\Embedded Workbench 8.5\\arm\\inc\\c\\DLib_Config_Full.h"
--D__VERSION__="IAR ANSI C/C++ Compiler V8.50.4.261/W32 for ARM"
+-D_DLIB_CONFIG_FILE_HEADER_NAME="C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.4\arm\inc\c\DLib_Config_Full.h"
+-D_DLIB_CONFIG_FILE_STRING="C:\\Program Files (x86)\\IAR Systems\\Embedded Workbench 8.4\\arm\\inc\\c\\DLib_Config_Full.h"
+-D__VERSION__="IAR ANSI C/C++ Compiler V8.50.6.265/W32 for ARM"
 -D_VA_DEFINED=
 -D_VA_LIST=struct __va_list
 -D__ICCARM_OLD_DEFINED_VAARGS__=1

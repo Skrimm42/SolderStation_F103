@@ -18,35 +18,31 @@
   */
 // 
 //----ADC1-----ADC2------
-//  0, 2, 8, 10  - ADC1.Ch1
-//  4, 6, 12, 14 - ADC1.Ch2
-//  1, 3, 9, 11  - ADC2.Ch3
-//  5, 7, 13, 15 - ADC2.Ch4
-
+//after update ADC1 ch.1 ch.3 ch.1 ch.3
+//             ADC2 ch.2 ch.4 ch.2 ch.4
+// channels in adc_buffer: 1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4
+//FAN Thermocouple    - PA.1 Ch.1 
+//FAN fan             - PA.2 Ch.2
+//Solder Thermocouple - PA.3 Ch.3
+//Spare channel       - PA.4. Ch.4
 /* USER CODE END Header */
-
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <stdbool.h>
 #include <math.h>
 #include "sEEPROM.h"
 #include "button_drv.h"
 #include "MicroMenu.h"
 #include "sEEPROM.h"
 #include "ssd1306.h"
+#include "menu.h"
+#include "const_var.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-typedef enum  
-{
-  SOLDER_E,
-  FAN_E,
-  MENU_E
-}ProgState;
 
 /* USER CODE END PTD */
 
@@ -58,24 +54,6 @@ typedef enum
 /* USER CODE BEGIN PM */
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
-
-#define MAX_CCR_LOAD_SOLDER 10000
-#define MAX_CCR_LOAD_FAN    10000
-
-#define T_FILTER_N 10
-
-#define ID_EE                           0xDEADBEEF
-#define EE_ID_ADDR                      0x0020
-#define EE_TEMP_Z_SOLDER_ADDR           0x0040
-#define EE_TEMP_Z_FAN_ADDR              0x0042
-#define EE_TIP_N_ADDR                   0x0060
-#define EE_CAL_COEFF_SOLDER_ADDR        0x0080
-#define EE_CAL_COEFF_FAN_ADDR           0x00A8
-#define EE_TIMEOUT_ADDR                 0x00B0
-#define EE_KP_SOLDER_ADDR               0x00C0
-#define EE_KP_FAN_ADDR                  0x00C4
-#define EE_KI_SOLDER_ADDR               0x00C8
-#define EE_KI_FAN_ADDR                  0x00CC
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -91,27 +69,10 @@ SPI_HandleTypeDef hspi2;
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
-TIM_HandleTypeDef htim4;
 
 /* USER CODE BEGIN PV */
-ButtonStateTypeDef EncBtn;
 
-ProgState progstate = SOLDER_E, prog_state_previous = SOLDER_E;
 
-const float k_solder_default = 0.131541, b_solder_default = -42.93635,
-            k_fan_default = 0.100217864923747, b_fan_default = 48.8910675381264;
-const uint8_t N_tip_default = 1;
-const uint16_t Timeout_time_default = 180, Temp_z_default = 220;
-const uint32_t ID = ID_EE;
-
-uint16_t adc_buffer[24];
-
-uint16_t TimeoutTime;
-uint32_t Timeout_cntr;
-
-uint16_t Solder_temp_z, Temperature_z_former, Fan_temp_z;
-uint8_t N_solder_tip;
-float k_solder, b_solder, k_fan, b_fan;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -120,7 +81,6 @@ static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_TIM2_Init(void);
-static void MX_TIM4_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_ADC1_Init(void);
@@ -130,6 +90,10 @@ static void MX_ADC2_Init(void);
 volatile void delay(volatile uint32_t cnt);
 void fan_working_layout(void);
 void solder_working_layout(void);
+void getADC_values(void);
+void regulator_solder(void);
+void regulator_fan(void);
+void getDiscreteInputs(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -139,22 +103,26 @@ void fan_working_layout(void)
 {
   progstate = FAN_E;
   
-  __IO uint16_t tim1cr1 = TIM1 -> CR1;
+  __IO uint16_t tim1cr1 = TIM2 -> CR1;
   tim1cr1 |= 0x0060; //CMS = 11, encoder value max = arr, no rollover 
-  TIM1 -> CR1 = tim1cr1;
+  TIM2 -> CR1 = tim1cr1;
   
   SSD1306_Fill(SSD1306_COLOR_BLACK);
   SSD1306_GotoXY(0, 0);
   SSD1306_Puts("Fan", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  SSD1306_GotoXY(0, 16);
+  SSD1306_Puts("Set: ", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  SSD1306_GotoXY(50, 0);
+  SSD1306_Puts("Blower: ", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
 }
 
 void solder_working_layout(void)
 {
  
-  __IO uint16_t tim1cr1 = TIM1 -> CR1;
+  __IO uint16_t tim1cr1 = TIM2 -> CR1;
   tim1cr1 |= 0x0060; //CMS = 11, encoder value max = arr, no rollover 
-  TIM1 -> CR1 = tim1cr1;
-  __HAL_TIM_SET_COUNTER(&htim1, Solder_temp_z * 2 + 1); 
+  TIM2 -> CR1 = tim1cr1;
+  __HAL_TIM_SET_COUNTER(&htim2, Solder_temp_z * 2 + 1); 
   progstate = SOLDER_E;
     
   SSD1306_Fill(SSD1306_COLOR_BLACK);
@@ -165,20 +133,237 @@ void solder_working_layout(void)
 }
 
 
+void getADC_values(void)
+{
+  Solder_Thermocouple_adc = 0;
+  Fan_Thermocouple_adc = 0;
+  Fan_fan_adc  = 0;
+  
+  for(uint8_t i = 0; i < 16; i += 4)
+  {
+    Fan_Thermocouple_adc += adc_buffer[i];
+    Fan_fan_adc += adc_buffer[i + 1];
+    Solder_Thermocouple_adc += adc_buffer[i + 2];
+  } 
+  Solder_Thermocouple_adc /= 4;
+  Fan_Thermocouple_adc /= 4;
+  Fan_fan_adc  /= 4;
+  
+  //---------Normalization------------------------------------------------------
+  Fan_Thermocouple_temp = (int16_t)((float)Fan_Thermocouple_adc * k_fan + b_fan) - 16 * !F_fan_gerkon; //Compensate gercon pullup resistor 1kOhm
+  U_fan_temp = (float)Fan_Thermocouple_temp / 450.0f;
+  U_fan_temp_z = (float)Fan_temp_z / 450.0f;
+  
+  Solder_Thermocouple_temp = (int16_t)((float)Solder_Thermocouple_adc * k_solder + b_solder);
+  U_solder_temp = (float)Solder_Thermocouple_temp / 400;
+  U_solder_temp_z = (float)Solder_temp_z / 400;
+  
+  Fan_fan_percent = (uint16_t)(100 - (2550 - Fan_fan_adc) / 24.9);
+  Fan_fan_percent = MIN(Fan_fan_percent, 100);
+      
+}
+
+
+void regulator_solder(void)
+{
+  Uy_solder_p = U_solder_temp - U_solder_temp_z;
+  Uy_solder_p = fmaxf(Uy_solder_p, -1.25);
+  Uy_solder_p = fminf(Uy_solder_p, 1.25);
+  
+  Uy_solder_i = (Uy_solder_i + (tp / T1) * Uy_solder_p) * F_solder;
+  Uy_solder_i = fminf(Uy_solder_i, 1);
+  Uy_solder_i = fmaxf(Uy_solder_i, 0);
+  
+  Uy_solder = Uy_solder_p * K1 + Uy_solder_i;
+  Uy_solder = fminf(Uy_solder, 1.25);
+  Uy_solder = fmaxf(Uy_solder, 0.12);
+}
+
+
+void regulator_fan(void)
+{
+  Uy_fan_p = U_fan_temp - U_fan_temp_z;
+  Uy_fan_p = fmaxf(Uy_fan_p, -1.25);
+  Uy_fan_p = fminf(Uy_fan_p, 1.25);
+  
+  Uy_fan_i = (Uy_fan_i + (tp / T2) * Uy_fan_p) * F_fan;
+  Uy_fan_i = fminf(Uy_fan_i, 1);
+  Uy_fan_i = fmaxf(Uy_fan_i, 0);
+  
+  Uy_fan = Uy_fan_p * K2 + Uy_fan_i;
+  Uy_fan = fminf(Uy_fan, 1.25);
+  Uy_fan = fmaxf(Uy_fan, 0.3);
+}
+
+//Get state of the fan handle gerkon and solder handle vibration switch
+void getDiscreteInputs(void)
+{
+  bool F_fan_gerkon_tmp, F_solder_switch_tmp;
+  static uint8_t F_fan_gerkon_cnt;
+  static bool F_solder_switch_tmp_previous;
+  
+  //Gerkon with bounce protection
+  F_fan_gerkon_tmp = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_10);
+  F_fan_gerkon_cnt = (F_fan_gerkon_cnt + 1) * F_fan_gerkon_tmp;
+  if(F_fan_gerkon_cnt >= DEBOUNCE)
+  {
+    F_fan_gerkon_cnt = DEBOUNCE;
+    F_fan_gerkon = 1;
+  }
+  else F_fan_gerkon = 0;
+  
+  //  Vibration switch. Only changing of this signal is take into account.
+  // Need for solder timeout
+  F_solder_switch_tmp = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_7);
+  F_solder_switch = !(F_solder_switch_tmp ^ F_solder_switch_tmp_previous);
+  F_solder_switch_tmp_previous = F_solder_switch_tmp;
+}
+
+void blower_fan_manage(void)
+{
+  static bool F_blower_block;
+  
+  //Turn Off blower
+  if((F_fan_gerkon == 0) && ((Fan_Thermocouple_temp <= FAN_FLUSH_TEMPERATURE) || (F_blower_block == 1)))
+  {
+    K_blower_flush = 1;
+    K_blower_off = 0;
+    F_blower_block = 1;
+  }
+  //Flush
+  if((F_fan_gerkon == 0) && (Fan_Thermocouple_temp > FAN_FLUSH_TEMPERATURE) && (F_blower_block == 0))
+  {
+    K_blower_flush = 0;
+    K_blower_off = 1;
+  }
+  //Working
+  if(F_fan_gerkon == 1)
+  {
+    K_blower_flush = 1;
+    K_blower_off = 1;
+    F_blower_block = 0;
+  }
+  // Set outputs
+  if(K_blower_flush) HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11, GPIO_PIN_SET);
+  else HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11, GPIO_PIN_RESET);
+  
+  if(K_blower_off) HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_SET);
+  else HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_RESET);
+}
+
+// Main Callback from Solder PWM timer at the end of PWM period.
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   static uint16_t cnt_slowdown;
+  static uint16_t Solder_timeout_cnt;
 
-  
+  uint16_t Fan_CCR_Load, Solder_CCR_Load;
+
   if (htim->Instance==TIM3) //check if the interrupt comes from TIM3(Solder PWM)
   {
     delay(7000);
-    //HAL_ADC_Start(&hadc2);
     HAL_ADC_Start(&hadc1);
-    //HAL_ADCEx_MultiModeStart_DMA(&hadc1, (uint32_t*)&adc_buffer, 4);
     getButtonState(&EncBtn);
+    getButtonState(&Solder_off_btn);
     
+    if(EncBtn.LongPush) BtnCntr_LongPush = 1;
+    if(EncBtn.ShortPush) BtnCntr_ShortPush = 1;
+    if(progstate == MENU_E) //Duplicate for menu
+    {
+      if(EncBtn.ShortPush) BtnCntr_Menu = 1;
+    }
     
+    getADC_values();    
+    getDiscreteInputs(); //Fan gerkon and solder handle vibration switch
+        
+    //---------Encoder----------------------------------------------------------
+    //--if encoder value is less than SOLDER_MIN_TEMP_Z or FAN_MIN_TEMP_Z, 
+    // the correspinding devise is switch off
+    uint16_t counter = __HAL_TIM_GET_COUNTER(&htim2);
+    if(progstate == SOLDER_E)
+    {    
+      //--------Solder Switch_off button------------------------------------------
+      if(Solder_off_btn.ShortPush) 
+      {
+        F_solder_btn_off = !F_solder_btn_off;
+        // sEE_WriteBuffer(&hspi2, (uint8_t*)&F_solder_btn_off, EE_BTNOFF_SOLDER_ADDR, 1);
+      }
+      
+      if(F_solder_btn_off)//If button not press
+      {
+        Solder_temp_z = (uint16_t)(counter / 2);
+      }
+      else 
+      {
+        __HAL_TIM_SET_COUNTER(&htim2, Solder_temp_z * 2 + 1); //Freeze encoder input
+      }
+      
+      if(Solder_temp_z <= SOLDER_MIN_TEMP_Z)//Switch off the iron with encoder
+      {
+        __HAL_TIM_SET_COUNTER(&htim2, SOLDER_MIN_TEMP_Z * 2 + 1);
+        F_solder_enable = 0;
+        Solder_temp_z = SOLDER_MIN_TEMP_Z;
+      }
+      else F_solder_enable = 1;
+    }
+    if(progstate == FAN_E)
+    {
+      Fan_temp_z = (uint16_t)(counter / 2);
+      if(Fan_temp_z <= FAN_MIN_TEMP_Z)//Switch off the fan with encoder
+      {
+        __HAL_TIM_SET_COUNTER(&htim2, FAN_MIN_TEMP_Z * 2 + 1);
+        F_fan_enable = 0;
+        Fan_temp_z = FAN_MIN_TEMP_Z;
+      }
+      else F_fan_enable = 1;
+    }
+    
+
+    //-----------Solder timeout-------------------------------------------------
+    if((Solder_temp_z - Solder_temp_z_former) != 0) F_encoder_change_value = 0;
+    else F_encoder_change_value = 1; // if encoder changed its value, timeout reset
+    Solder_timeout_cnt = (Solder_timeout_cnt + 1) * (F_solder_switch & F_encoder_change_value);
+    if(Solder_timeout_cnt >= TimeoutTime * 100)
+    {
+      F_solder_timeout = 0;
+      Solder_timeout_cnt = TimeoutTime * 100;
+    }
+    else F_solder_timeout = 1;
+        
+    //---------Protection from Fan thermocouple disconnection-------------------
+    if(U_fan_temp > 1.05) F_fan_temp_protect = 1;
+    else F_fan_temp_protect = 0;
+    //---------Protection from blower stop or less than 30%---------------------
+    if(Fan_fan_percent < 30)F_fan_blower_protect = 1;
+    else F_fan_blower_protect = 0;
+    //---------Protection from solder disconnection-----------------------------
+    if(U_solder_temp > 1.075) F_solder_temp_protect = 1;
+    else F_solder_temp_protect = 0;
+    
+    //---F_fan-----F_solder-----------------------------------------------------
+    F_fan = F_fan_enable & F_fan_gerkon & !F_fan_temp_protect;
+    F_solder = F_solder_timeout & F_solder_enable & !F_solder_temp_protect & F_solder_btn_off;
+
+    blower_fan_manage(); //Blower flush and on/off 
+    
+    if((progstate == SOLDER_E) || (progstate == FAN_E)) 
+    {
+      regulator_solder();
+      regulator_fan();
+      
+      Solder_CCR_Load = (uint16_t)(Uy_solder * MAX_CCR_LOAD_SOLDER + !F_solder * MAX_CCR_LOAD_SOLDER);
+      Fan_CCR_Load = (uint16_t)(Uy_fan * MAX_CCR_LOAD_FAN + !F_fan * MAX_CCR_LOAD_FAN);
+      
+      __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, Solder_CCR_Load); 
+      __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, Fan_CCR_Load); 
+    }
+    
+    //-------LED blinking-------------------------------------------------------
+    if(cnt_slowdown++>50)
+    {
+      cnt_slowdown = 0;
+      HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
+    }
   }
 }
 
@@ -195,9 +380,9 @@ volatile void delay(volatile uint32_t cnt)
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  static uint16_t Temperature_z_former, cntr;
+  static uint16_t cntr;
   static bool Fcntr;
-  uint16_t T_filtered;
+  static uint8_t cnt_filter; //filtering temperature for display
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -221,7 +406,6 @@ int main(void)
   MX_DMA_Init();
   MX_I2C1_Init();
   MX_TIM2_Init();
-  MX_TIM4_Init();
   MX_TIM1_Init();
   MX_TIM3_Init();
   MX_ADC1_Init();
@@ -232,13 +416,20 @@ int main(void)
   SSD1306_Init(&hi2c1, 0x78);
   
   Button_Init(&EncBtn, GPIOB, GPIO_PIN_6);
+  Button_Init(&Solder_off_btn, GPIOC, GPIO_PIN_14);  
+  
+  HAL_Delay(200);
   
   //Initiate EEPROM values
-  uint32_t ID_read;
+  __IO uint32_t ID_read;
   sEE_ReadBuffer(&hspi2, (uint8_t*)&ID_read, EE_ID_ADDR, 8);
+  sEE_ReadBuffer(&hspi2, (uint8_t*)&ID_read, EE_ID_ADDR, 8);//Was error here, have to read 2 times
   //ID_read = 0;
   //sEE_WriteBuffer(&hspi2, (uint8_t*)&ID_read, EE_ID_ADDR, 4);
   //ID_read = ID_EE;
+  
+
+  
   if(ID_read != ID_EE)
   {
     //k and b scaling coeffs for solder tips
@@ -261,8 +452,11 @@ int main(void)
     sEE_WriteBuffer(&hspi2, (uint8_t*)&N_tip_default, EE_TIP_N_ADDR, 1);
     ID_read = ID_EE;
     sEE_WriteBuffer(&hspi2, (uint8_t*)&ID_read, EE_ID_ADDR, 4);
-  }
-  
+    
+    SSD1306_Puts("Initial settings done.", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+    SSD1306_UpdateScreen(); 
+    HAL_Delay(2000);
+  } 
   sEE_ReadBuffer(&hspi2, (uint8_t*)&TimeoutTime, EE_TIMEOUT_ADDR, 2);
   
   sEE_ReadBuffer(&hspi2, (uint8_t*)&Solder_temp_z, EE_TEMP_Z_SOLDER_ADDR, 2);
@@ -277,26 +471,27 @@ int main(void)
   sEE_ReadBuffer(&hspi2, (uint8_t*)&k_fan, EE_CAL_COEFF_FAN_ADDR, 4);
   sEE_ReadBuffer(&hspi2, (uint8_t*)&b_fan, EE_CAL_COEFF_FAN_ADDR + 4, 4);
   
-  //ADC DMA in circular mode
+  Solder_temp_z_former = Solder_temp_z;
+  Fan_temp_z_former = Fan_temp_z;
+  
+  
+  __HAL_TIM_SET_COUNTER(&htim2, Solder_temp_z * 2 + 1);
+  __HAL_TIM_SET_AUTORELOAD(&htim2, 801);
+   
+  solder_working_layout();
+  
+    //ADC DMA in circular mode
   HAL_ADCEx_Calibration_Start(&hadc1);
   HAL_ADCEx_Calibration_Start(&hadc2);
   HAL_ADC_Start(&hadc2);
   HAL_ADCEx_MultiModeStart_DMA(&hadc1, (uint32_t*)&adc_buffer, 8);
   
-  Temperature_z_former = Solder_temp_z;
-  __HAL_TIM_SET_COUNTER(&htim1, Solder_temp_z * 2 + 1);
-  
-  solder_working_layout();
-  
-  SSD1306_UpdateScreen(); 
-  
   HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_1);
-  
   HAL_TIM_Base_Start_IT(&htim3);
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
   
-  
+  SSD1306_UpdateScreen(); 
   
   /* USER CODE END 2 */
 
@@ -305,20 +500,176 @@ int main(void)
   while (1)
   {
     
-//    //Write set temperature variable into eeprom after 2.5 seconds
-//    if((Solder_temp_z - Temperature_z_former) != 0)
-//    {
-//      cntr = 0;
-//      Fcntr = 1;
-//    }
-//    cntr += Fcntr;
-//    if(cntr >= 100)
-//    {
-//      cntr = 0;
-//      Fcntr = 0;
-//      sEE_WriteBuffer(&hspi2, (uint8_t*)&Solder_temp_z, EE_TEMP_Z_SOLDER_ADDR, 2);
-//    }
-//    Temperature_z_former = Solder_temp_z;
+    //------Write preset temperature variable into eeprom after some time-------
+    //------Both at the same time-----------------------------------------------
+    if((progstate == SOLDER_E) || (progstate == FAN_E))
+    {
+      if(((Solder_temp_z - Solder_temp_z_former) != 0) || (Fan_temp_z - Fan_temp_z_former) != 0)
+      {
+        cntr = 0;
+        Fcntr = 1;
+      }
+      cntr += Fcntr;
+      if(cntr >= 40)
+      {
+        cntr = 0;
+        Fcntr = 0;
+        sEE_WriteBuffer(&hspi2, (uint8_t*)&Solder_temp_z, EE_TEMP_Z_SOLDER_ADDR, 2);
+        sEE_WriteBuffer(&hspi2, (uint8_t*)&Fan_temp_z, EE_TEMP_Z_FAN_ADDR, 2);
+      }
+      Solder_temp_z_former = Solder_temp_z;
+      Fan_temp_z_former = Fan_temp_z;
+    }
+    
+    //-----Switch working layout, fan or solder---------------------------------
+    if(BtnCntr_ShortPush)
+    {
+      if(progstate == SOLDER_E) 
+      {
+        progstate = FAN_E;
+        __HAL_TIM_SET_COUNTER(&htim2, Fan_temp_z * 2 + 1);
+        __HAL_TIM_SET_AUTORELOAD(&htim2, 901);
+        fan_working_layout();
+      }
+      else if(progstate == FAN_E) 
+      {
+        progstate = SOLDER_E;
+        __HAL_TIM_SET_COUNTER(&htim2, Solder_temp_z * 2 + 1);
+        __HAL_TIM_SET_AUTORELOAD(&htim2, 801);
+        solder_working_layout();
+      }
+      BtnCntr_ShortPush = 0;
+    }
+    
+    //------------Set menu layout----------------------------------------------
+    if(BtnCntr_LongPush)
+    {
+      BtnCntr_LongPush = 0;
+      SSD1306_Fill(SSD1306_COLOR_BLACK);
+      if((progstate == SOLDER_E) || (progstate == FAN_E))
+      {
+        prog_state_previous = progstate;
+        progstate = MENU_E;
+        //Switch off solder and fan
+        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, MAX_CCR_LOAD_SOLDER);
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, MAX_CCR_LOAD_FAN);
+        
+        SSD1306_GotoXY(20, 0);
+        SSD1306_Puts("Settings menu", &mSGothic_12ptFontInfo, SSD1306_COLOR_WHITE);
+        
+        __IO uint16_t tim2cr1 = TIM2 -> CR1;
+        tim2cr1 &= 0xFF9F; //CMS = 00, encoder value rollover
+        TIM2 -> CR1 = tim2cr1;
+        
+        Menu_Navigate(&Menu_1);
+        enc_value_previous = (uint16_t)(__HAL_TIM_GET_COUNTER(&htim2) / 2); //for proper menu show
+      }
+      else if(progstate == MENU_E)
+      {
+        solder_working_layout();
+      }
+      else fan_working_layout();
+    }
+    
+    //----------Display information---------------------------------------------
+    int32_t T_filtered;
+    T_filtered = 0;
+    
+    //Filtering temperature for display
+    Solder_filter_array[cnt_filter] = Solder_Thermocouple_temp;
+    Fan_filter_array[cnt_filter] = Fan_Thermocouple_temp;
+    if(++cnt_filter >= T_FILTER_N)
+    {
+      cnt_filter = 0;
+    }
+    
+    
+    if(progstate == SOLDER_E)//-----------------Solder-------------------------
+    {
+      for(uint8_t i = 0; i < T_FILTER_N; i++)
+      {
+        T_filtered += Solder_filter_array[i];
+      }
+      T_filtered /= T_FILTER_N;
+      
+      SSD1306_DrawFilledRectangle(96, 16, 31, 16, SSD1306_COLOR_BLACK);
+      SSD1306_GotoXY(96, 19);
+      if(F_solder_enable && F_solder_btn_off)
+      {  
+        SSD1306_printf(&palatinoLinotype_12ptFontInfo, "%d",  Solder_temp_z);
+      }
+      else
+      {
+        SSD1306_printf(&palatinoLinotype_12ptFontInfo, "Off");
+      }
+      SSD1306_DrawFilledRectangle(0, 32, 127, 31, SSD1306_COLOR_BLACK);
+      SSD1306_GotoXY(10, 35);
+      SSD1306_printf(&amperzand_24ptFontInfo, "%d",  T_filtered);
+      SSD1306_GotoXY(90, 48);
+      if(!F_solder_timeout)
+      {  
+        SSD1306_Puts("Time", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+      }
+      SSD1306_GotoXY(90, 38);
+      if(F_solder_temp_protect)
+      {
+        SSD1306_Puts("Err!", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+      }
+      SSD1306_UpdateScreen();
+      HAL_Delay(50);
+    }
+    else if(progstate == FAN_E)//----------------Fan----------------------------
+    {
+      for(uint8_t i = 0; i < T_FILTER_N; i++)
+      {
+        T_filtered += Fan_filter_array[i];
+      }
+      T_filtered /= T_FILTER_N;
+      
+      SSD1306_DrawFilledRectangle(96, 0, 31, 48, SSD1306_COLOR_BLACK);
+      SSD1306_GotoXY(96, 19);
+      if(F_fan_enable)
+      {
+        SSD1306_printf(&palatinoLinotype_12ptFontInfo, "%d",  Fan_temp_z);
+      }
+      else 
+      {
+        SSD1306_printf(&palatinoLinotype_12ptFontInfo, "Off");
+      }
+      SSD1306_DrawFilledRectangle(0, 32, 127, 31, SSD1306_COLOR_BLACK);
+      SSD1306_GotoXY(10, 35);
+//      if(T_filtered >= 75)
+//      {
+        SSD1306_printf(&amperzand_24ptFontInfo, "%d",  T_filtered);
+//      }
+//      else
+//      {
+//        SSD1306_printf(&amperzand_24ptFontInfo, "<75" );
+//      }
+      SSD1306_GotoXY(95, 0);
+      SSD1306_printf(&palatinoLinotype_12ptFontInfo, "%d%%",  Fan_fan_percent);
+      if(F_fan_temp_protect || F_fan_blower_protect)
+      {
+        SSD1306_GotoXY(90, 38);
+         SSD1306_Puts("Err!", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+      }
+      SSD1306_GotoXY(90, 50);
+      if(F_fan_gerkon)
+      {
+         SSD1306_Puts("On", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+      }
+      else
+      {
+        SSD1306_Puts("Off", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+      }
+      SSD1306_UpdateScreen();
+      HAL_Delay(50);
+    }
+    else if (progstate == MENU_E)
+    {
+      show_menu();
+    }
+    
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -336,7 +687,8 @@ void SystemClock_Config(void)
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
   RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
-  /** Initializes the CPU, AHB and APB busses clocks 
+  /** Initializes the RCC Oscillators according to the specified parameters
+  * in the RCC_OscInitTypeDef structure.
   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
@@ -349,7 +701,7 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  /** Initializes the CPU, AHB and APB busses clocks 
+  /** Initializes the CPU, AHB and APB buses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
@@ -388,7 +740,7 @@ static void MX_ADC1_Init(void)
   /* USER CODE BEGIN ADC1_Init 1 */
 
   /* USER CODE END ADC1_Init 1 */
-  /** Common config 
+  /** Common config
   */
   hadc1.Instance = ADC1;
   hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE;
@@ -401,14 +753,14 @@ static void MX_ADC1_Init(void)
   {
     Error_Handler();
   }
-  /** Configure the ADC multi-mode 
+  /** Configure the ADC multi-mode
   */
   multimode.Mode = ADC_DUALMODE_REGSIMULT;
   if (HAL_ADCEx_MultiModeConfigChannel(&hadc1, &multimode) != HAL_OK)
   {
     Error_Handler();
   }
-  /** Configure Regular Channel 
+  /** Configure Regular Channel
   */
   sConfig.Channel = ADC_CHANNEL_1;
   sConfig.Rank = ADC_REGULAR_RANK_1;
@@ -417,23 +769,25 @@ static void MX_ADC1_Init(void)
   {
     Error_Handler();
   }
-  /** Configure Regular Channel 
+  /** Configure Regular Channel
   */
+  sConfig.Channel = ADC_CHANNEL_3;
   sConfig.Rank = ADC_REGULAR_RANK_2;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
   }
-  /** Configure Regular Channel 
+  /** Configure Regular Channel
   */
-  sConfig.Channel = ADC_CHANNEL_2;
+  sConfig.Channel = ADC_CHANNEL_1;
   sConfig.Rank = ADC_REGULAR_RANK_3;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
   }
-  /** Configure Regular Channel 
+  /** Configure Regular Channel
   */
+  sConfig.Channel = ADC_CHANNEL_3;
   sConfig.Rank = ADC_REGULAR_RANK_4;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
@@ -462,7 +816,7 @@ static void MX_ADC2_Init(void)
   /* USER CODE BEGIN ADC2_Init 1 */
 
   /* USER CODE END ADC2_Init 1 */
-  /** Common config 
+  /** Common config
   */
   hadc2.Instance = ADC2;
   hadc2.Init.ScanConvMode = ADC_SCAN_ENABLE;
@@ -475,32 +829,34 @@ static void MX_ADC2_Init(void)
   {
     Error_Handler();
   }
-  /** Configure Regular Channel 
+  /** Configure Regular Channel
   */
-  sConfig.Channel = ADC_CHANNEL_3;
+  sConfig.Channel = ADC_CHANNEL_2;
   sConfig.Rank = ADC_REGULAR_RANK_1;
   sConfig.SamplingTime = ADC_SAMPLETIME_71CYCLES_5;
   if (HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK)
   {
     Error_Handler();
   }
-  /** Configure Regular Channel 
+  /** Configure Regular Channel
   */
+  sConfig.Channel = ADC_CHANNEL_4;
   sConfig.Rank = ADC_REGULAR_RANK_2;
   if (HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK)
   {
     Error_Handler();
   }
-  /** Configure Regular Channel 
+  /** Configure Regular Channel
   */
-  sConfig.Channel = ADC_CHANNEL_4;
+  sConfig.Channel = ADC_CHANNEL_2;
   sConfig.Rank = ADC_REGULAR_RANK_3;
   if (HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK)
   {
     Error_Handler();
   }
-  /** Configure Regular Channel 
+  /** Configure Regular Channel
   */
+  sConfig.Channel = ADC_CHANNEL_4;
   sConfig.Rank = ADC_REGULAR_RANK_4;
   if (HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK)
   {
@@ -766,57 +1122,9 @@ static void MX_TIM3_Init(void)
 }
 
 /**
-  * @brief TIM4 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_TIM4_Init(void)
-{
-
-  /* USER CODE BEGIN TIM4_Init 0 */
-
-  /* USER CODE END TIM4_Init 0 */
-
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-  TIM_OC_InitTypeDef sConfigOC = {0};
-
-  /* USER CODE BEGIN TIM4_Init 1 */
-
-  /* USER CODE END TIM4_Init 1 */
-  htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 71;
-  htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim4.Init.Period = 4999;
-  htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_OC_Init(&htim4) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sConfigOC.OCMode = TIM_OCMODE_TIMING;
-  sConfigOC.Pulse = 0;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  if (HAL_TIM_OC_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM4_Init 2 */
-
-  /* USER CODE END TIM4_Init 2 */
-
-}
-
-/** 
   * Enable DMA controller clock
   */
-static void MX_DMA_Init(void) 
+static void MX_DMA_Init(void)
 {
 
   /* DMA controller clock enable */
@@ -848,16 +1156,18 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(SPI2_NSS_GPIO_Port, SPI2_NSS_Pin, GPIO_PIN_SET);
 
-  /*Configure GPIO pin : PC13 */
-  GPIO_InitStruct.Pin = GPIO_PIN_13;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_RESET);
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : PC14 */
+  GPIO_InitStruct.Pin = GPIO_PIN_14;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pin : SPI2_NSS_Pin */
@@ -873,8 +1183,22 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PB6 */
-  GPIO_InitStruct.Pin = GPIO_PIN_6;
+  /*Configure GPIO pins : PA11 PA12 */
+  GPIO_InitStruct.Pin = GPIO_PIN_11|GPIO_PIN_12;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PB5 */
+  GPIO_InitStruct.Pin = GPIO_PIN_5;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PB6 Solder_switch_Pin */
+  GPIO_InitStruct.Pin = GPIO_PIN_6|Solder_switch_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
@@ -906,7 +1230,7 @@ void Error_Handler(void)
   * @retval None
   */
 void assert_failed(uint8_t *file, uint32_t line)
-{ 
+{
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */

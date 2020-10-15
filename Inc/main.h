@@ -56,12 +56,16 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+void fan_working_layout(void);
+void solder_working_layout(void);
+void blower_fan_manage(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
 #define SPI2_NSS_Pin GPIO_PIN_12
 #define SPI2_NSS_GPIO_Port GPIOB
+#define Solder_switch_Pin GPIO_PIN_7
+#define Solder_switch_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
