@@ -138,16 +138,19 @@ void getADC_values(void)
   Solder_Thermocouple_adc = 0;
   Fan_Thermocouple_adc = 0;
   Fan_fan_adc  = 0;
+  Solder_H907_adc = 0;
   
   for(uint8_t i = 0; i < 16; i += 4)
   {
     Fan_Thermocouple_adc += adc_buffer[i];
     Fan_fan_adc += adc_buffer[i + 1];
     Solder_Thermocouple_adc += adc_buffer[i + 2];
+    Solder_H907_adc += adc_buffer[i + 3];
   } 
   Solder_Thermocouple_adc /= 4;
   Fan_Thermocouple_adc /= 4;
   Fan_fan_adc  /= 4;
+  Solder_H907_adc /= 4;
   
   //---------Normalization------------------------------------------------------
   Fan_Thermocouple_temp = (int16_t)((float)Fan_Thermocouple_adc * k_fan + b_fan) - 16 * !F_fan_gerkon; //Compensate gercon pullup resistor 1kOhm

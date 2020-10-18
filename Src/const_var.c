@@ -22,7 +22,7 @@ uint8_t N_solder_tip;
 float k_solder, b_solder, k_fan, b_fan;
 uint16_t enc_value_previous;
 uint8_t Fan_fan_percent;
-uint16_t Solder_Thermocouple_adc, Fan_Thermocouple_adc, Fan_fan_adc;
+uint16_t Solder_Thermocouple_adc, Fan_Thermocouple_adc, Fan_fan_adc, Solder_H907_adc;
 int16_t Solder_Thermocouple_temp, Fan_Thermocouple_temp;
 float U_solder_temp, U_solder_temp_z, Uy_solder_p, Uy_solder_i, Uy_solder;
 float U_fan_temp, U_fan_temp_z, Uy_fan_p, Uy_fan_i, Uy_fan;

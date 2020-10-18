@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include "button_drv.h"
 
-#define T_FILTER_N 20
+#define T_FILTER_N 10
 
 
 #define MAX_CCR_LOAD_SOLDER 10000
@@ -61,7 +61,7 @@ extern uint8_t N_solder_tip;
 extern float k_solder, b_solder, k_fan, b_fan;
 
 extern uint8_t Fan_fan_percent;
-extern uint16_t Solder_Thermocouple_adc, Fan_Thermocouple_adc, Fan_fan_adc;
+extern uint16_t Solder_Thermocouple_adc, Fan_Thermocouple_adc, Fan_fan_adc, Solder_H907_adc;
 extern int16_t Solder_Thermocouple_temp, Fan_Thermocouple_temp;
 extern float U_solder_temp, U_solder_temp_z, Uy_solder_p, Uy_solder_i, Uy_solder;
 extern float U_fan_temp, U_fan_temp_z, Uy_fan_p, Uy_fan_i, Uy_fan;
