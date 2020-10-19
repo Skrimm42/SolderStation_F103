@@ -6,13 +6,14 @@
 #include "stm32f1xx_hal.h"
 #include "MicroMenu.h"
 
-static void setSolderKp(void);
 uint8_t inputUintCoeff(uint32_t *tmp, uint8_t Kp);
 static void SetTimeout(void);
 static void Reset_solder(void);
 static void Reset_fan(void);
 static void getN_Solder_tip(void);
 static void ExitMenu(void);
+static void SetSolderType(void);
+
 void fan_working_layout(void);
 
 void show_menu(void);
