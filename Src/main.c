@@ -453,10 +453,10 @@ int main(void)
   
   //Erase EE_ID so eeprom will fill with default values. Kind of hard reset.
   //To reset need to push Switch Off Solder Button during turn on solder station.
-  if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_14) == GPIO_PIN_SET)
+  if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_14) == GPIO_PIN_RESET)
   {
     HAL_Delay(1000);
-    if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_14) == GPIO_PIN_SET)
+    if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_14) == GPIO_PIN_RESET)
     {
       ID_read = 0;
       sEE_WriteBuffer(&hspi2, (uint8_t*)&ID_read, EE_ID_ADDR, 4);

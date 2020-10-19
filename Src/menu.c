@@ -60,6 +60,7 @@ static void SetSolderType(void)
   SolderType soldertype_tmp;
   uint16_t base_address;
   
+  BtnCntr_Menu = 0;
   tmparr = __HAL_TIM_GET_AUTORELOAD(&htim2);
   
   SSD1306_DrawFilledRectangle(0, 17, 127, 46, SSD1306_COLOR_BLACK);
@@ -68,13 +69,13 @@ static void SetSolderType(void)
   
   ENCODER_ROLLOVER
   __HAL_TIM_SET_COUNTER(&htim2, 0);
-  __HAL_TIM_SET_AUTORELOAD(&htim2, 2);
+  __HAL_TIM_SET_AUTORELOAD(&htim2, 3);
   while(!BtnCntr_Menu)
   {
     BtnCntr_Menu = 0;
-    counter_temp = (__HAL_TIM_GET_COUNTER(&htim2));
+    counter_temp = (__HAL_TIM_GET_COUNTER(&htim2)) / 2;
     SSD1306_DrawFilledRectangle(5, 27, 127, 27, SSD1306_COLOR_BLACK);
-    SSD1306_GotoXY(5, 27);
+    SSD1306_GotoXY(15, 35);
     if(counter_temp == 0)
     {
       SSD1306_Puts("T-12 ", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
@@ -87,7 +88,7 @@ static void SetSolderType(void)
     }
     SSD1306_UpdateScreen();
     
-    if(BtnCntr_LongPush)//exit setting timeout without eeprom write
+    if(BtnCntr_LongPush)//exit setting solder type without eeprom write
     {
       BtnCntr_LongPush = 0;
       __HAL_TIM_SET_AUTORELOAD(&htim2, tmparr);
@@ -116,9 +117,19 @@ static void SetSolderType(void)
   
   
   SSD1306_DrawFilledRectangle(0, 17, 127, 46, SSD1306_COLOR_BLACK);
-  SSD1306_GotoXY(1, 27);
-  SSD1306_Puts( "Set solder type finished", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  SSD1306_GotoXY(1, 17);
+  SSD1306_Puts( "Solder type is set to", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  SSD1306_GotoXY(15, 35);
+  if(soldertype == T_12)
+  {
+  SSD1306_Puts( "T-12", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  }
+  else 
+  {
+    SSD1306_Puts( "Hakko 907", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  }
   SSD1306_UpdateScreen();
+  __HAL_TIM_SET_AUTORELOAD(&htim2, tmparr);
   HAL_Delay(3000);
 }
 
@@ -129,8 +140,8 @@ static void SetTimeout(void)
   if(soldertype == HAKKO_907) 
   {
     SSD1306_DrawFilledRectangle(0, 17, 127, 46, SSD1306_COLOR_BLACK);
-    SSD1306_GotoXY(1, 17);
-    SSD1306_Puts("Nothing enter here.", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+    SSD1306_GotoXY(1, 27);
+    SSD1306_Puts("Nothing to enter here.", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
     SSD1306_UpdateScreen();
     HAL_Delay(3000);
     return;
@@ -175,8 +186,10 @@ static void SetTimeout(void)
   tim2cr1 &= 0xFF9F; //CMS = 00, encoder value rollover
   TIM2 -> CR1 = tim2cr1;
   SSD1306_DrawFilledRectangle(0, 17, 127, 46, SSD1306_COLOR_BLACK);
-  SSD1306_GotoXY(1, 27);
-  SSD1306_Puts( "Set timeout finished", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  SSD1306_GotoXY(1, 17);
+  SSD1306_Puts( "Timeout is set to", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  SSD1306_GotoXY(15, 35);
+  SSD1306_printf(&segoeUI_8ptFontInfo, "%d s", TimeoutTime);
   SSD1306_UpdateScreen();
   HAL_Delay(3000);
   
@@ -209,13 +222,13 @@ static void Reset_solder(void)
   k_solder = k_default;
   b_solder = b_default;
   SSD1306_DrawFilledRectangle(0, 17, 127, 46, SSD1306_COLOR_BLACK);
-  SSD1306_GotoXY(15, 25);
+  SSD1306_GotoXY(5, 25);
   if(soldertype == T_12) 
   {
     SSD1306_Puts( "T-12 handle", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
   }
   else SSD1306_Puts( "Hakko907 handle", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
-  SSD1306_GotoXY(5, 25);
+  SSD1306_GotoXY(5, 45);
   SSD1306_printf(&segoeUI_8ptFontInfo, "Solder tip # %d reset.",  N_solder_tip);
   SSD1306_UpdateScreen();
   HAL_Delay(3000);
@@ -321,7 +334,7 @@ static void Calibrate_solder(void)
   {
     counter_temp = (__HAL_TIM_GET_COUNTER(&htim2) / 2);
     temp_calibration_solder1 = counter_temp;
-    adc_calibration_solder1 = Solder_Thermocouple_adc;
+    adc_calibration_solder1 = Solder_Thermocouple_adc * !(bool)soldertype + Solder_H907_adc * (bool)soldertype;
     SSD1306_DrawFilledRectangle(30, 27, 127, 27, SSD1306_COLOR_BLACK);
     SSD1306_GotoXY(30, 27);     
     SSD1306_printf(&amperzand_24ptFontInfo, "%d",  counter_temp);
@@ -370,7 +383,7 @@ static void Calibrate_solder(void)
   {
     counter_temp = (__HAL_TIM_GET_COUNTER(&htim2) / 2);
     temp_calibration_solder2 = counter_temp;
-    adc_calibration_solder2 = Solder_Thermocouple_adc;
+    adc_calibration_solder2 = Solder_Thermocouple_adc * !(bool)soldertype + Solder_H907_adc * (bool)soldertype;
     SSD1306_DrawFilledRectangle(30, 27, 127, 27, SSD1306_COLOR_BLACK);
     SSD1306_GotoXY(30, 27);     
     SSD1306_printf(&amperzand_24ptFontInfo, "%d",  counter_temp);

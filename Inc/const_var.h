@@ -45,8 +45,8 @@ typedef enum
 
 typedef enum  
 {
-  T_12,
-  HAKKO_907,
+  T_12 = 0,
+  HAKKO_907 = 1,
 }SolderType;
 
 
