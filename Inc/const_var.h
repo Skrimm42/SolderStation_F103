@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include "button_drv.h"
 
-#define T_FILTER_N 20
+#define T_FILTER_N 10
 
 
 #define MAX_CCR_LOAD_SOLDER 10000
@@ -20,7 +20,7 @@
 #define EE_TEMP_Z_SOLDER_ADDR           0x0040
 #define EE_TEMP_Z_FAN_ADDR              0x0042
 #define EE_TIP_N_ADDR                   0x0060
-#define EE_CAL_COEFF_SOLDER_ADDR        0x0080
+#define EE_CAL_COEFF_SOLDER_T12_ADDR    0x0080
 #define EE_CAL_COEFF_FAN_ADDR           0x00A8
 #define EE_TIMEOUT_ADDR                 0x00B0
 #define EE_KP_SOLDER_ADDR               0x00C0
@@ -28,7 +28,8 @@
 #define EE_KI_SOLDER_ADDR               0x00C8
 #define EE_KI_FAN_ADDR                  0x00CC
 #define EE_BTNOFF_SOLDER_ADDR           0x00D0
-
+#define EE_SOLDER_TYPE_ADDR             0x00D1
+#define EE_CAL_COEFF_SOLDER_907_ADDR    0x00E0
 
 #define SOLDER_MIN_TEMP_Z 99
 #define FAN_MIN_TEMP_Z    99
@@ -42,11 +43,19 @@ typedef enum
   MENU_E
 }ProgState;
 
+typedef enum  
+{
+  T_12 = 0,
+  HAKKO_907 = 1,
+}SolderType;
+
+
 extern ButtonStateTypeDef EncBtn, Solder_off_btn;
 
 extern ProgState progstate, prog_state_previous;
-
-extern const float k_solder_default, b_solder_default, k_fan_default, b_fan_default;
+extern SolderType soldertype;
+extern const float k_solder_T12_default, b_solder_T12_default, k_fan_default,
+                   k_solder_H907_default, b_solder_H907_default, b_fan_default;
 extern const uint8_t N_tip_default;
 extern const uint16_t Timeout_time_default, Temp_z_default;
 extern const uint32_t ID;
@@ -61,7 +70,7 @@ extern uint8_t N_solder_tip;
 extern float k_solder, b_solder, k_fan, b_fan;
 
 extern uint8_t Fan_fan_percent;
-extern uint16_t Solder_Thermocouple_adc, Fan_Thermocouple_adc, Fan_fan_adc;
+extern uint16_t Solder_Thermocouple_adc, Fan_Thermocouple_adc, Fan_fan_adc, Solder_H907_adc;
 extern int16_t Solder_Thermocouple_temp, Fan_Thermocouple_temp;
 extern float U_solder_temp, U_solder_temp_z, Uy_solder_p, Uy_solder_i, Uy_solder;
 extern float U_fan_temp, U_fan_temp_z, Uy_fan_p, Uy_fan_i, Uy_fan;
@@ -73,8 +82,8 @@ extern bool F_solder, F_solder_switch, F_solder_timeout, F_solder_enable, F_fan,
      F_fan_blower_protect, F_encoder_change_value, F_solder_btn_off;
 extern bool BtnCntr_ShortPush, BtnCntr_LongPush, BtnCntr_Menu;
 
-extern int16_t Solder_filter_array[T_FILTER_N + 1];
-extern int16_t Fan_filter_array[T_FILTER_N + 1];
+extern int16_t Solder_filter_array[T_FILTER_N];
+extern int16_t Fan_filter_array[T_FILTER_N];
 
 extern const char strNULL[];
 extern uint8_t Kp_Solder;

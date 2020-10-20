@@ -130,6 +130,15 @@ void solder_working_layout(void)
   SSD1306_printf(&segoeUI_8ptFontInfo, "Solder %d",  N_solder_tip);
   SSD1306_GotoXY(0, 16);
   SSD1306_Puts("Set: ", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  SSD1306_GotoXY(100, 0);
+  if(soldertype == T_12)
+  {
+    SSD1306_Puts("T-12", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  }
+  else 
+  {
+    SSD1306_Puts("H-907", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  }
 }
 
 
@@ -138,23 +147,33 @@ void getADC_values(void)
   Solder_Thermocouple_adc = 0;
   Fan_Thermocouple_adc = 0;
   Fan_fan_adc  = 0;
+  Solder_H907_adc = 0;
   
   for(uint8_t i = 0; i < 16; i += 4)
   {
     Fan_Thermocouple_adc += adc_buffer[i];
     Fan_fan_adc += adc_buffer[i + 1];
     Solder_Thermocouple_adc += adc_buffer[i + 2];
+    Solder_H907_adc += adc_buffer[i + 3];
   } 
   Solder_Thermocouple_adc /= 4;
   Fan_Thermocouple_adc /= 4;
   Fan_fan_adc  /= 4;
+  Solder_H907_adc /= 4;
   
   //---------Normalization------------------------------------------------------
   Fan_Thermocouple_temp = (int16_t)((float)Fan_Thermocouple_adc * k_fan + b_fan) - 16 * !F_fan_gerkon; //Compensate gercon pullup resistor 1kOhm
   U_fan_temp = (float)Fan_Thermocouple_temp / 450.0f;
   U_fan_temp_z = (float)Fan_temp_z / 450.0f;
   
-  Solder_Thermocouple_temp = (int16_t)((float)Solder_Thermocouple_adc * k_solder + b_solder);
+  if(soldertype == T_12)
+  {
+    Solder_Thermocouple_temp = (int16_t)((float)Solder_Thermocouple_adc * k_solder + b_solder);
+  }
+  else 
+  {
+    Solder_Thermocouple_temp = (int16_t)((float)Solder_H907_adc * k_solder + b_solder);
+  }
   U_solder_temp = (float)Solder_Thermocouple_temp / 400;
   U_solder_temp_z = (float)Solder_temp_z / 400;
   
@@ -214,9 +233,14 @@ void getDiscreteInputs(void)
   
   //  Vibration switch. Only changing of this signal is take into account.
   // Need for solder timeout
-  F_solder_switch_tmp = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_7);
-  F_solder_switch = !(F_solder_switch_tmp ^ F_solder_switch_tmp_previous);
-  F_solder_switch_tmp_previous = F_solder_switch_tmp;
+  if(soldertype == HAKKO_907) F_solder_switch = 0; //Turn off vibroswitch feature for Hakko 907 handle
+  else
+  {
+    F_solder_switch_tmp = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_7);
+    F_solder_switch = !(F_solder_switch_tmp ^ F_solder_switch_tmp_previous);
+    F_solder_switch_tmp_previous = F_solder_switch_tmp;
+  }
+  
 }
 
 void blower_fan_manage(void)
@@ -261,7 +285,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
   if (htim->Instance==TIM3) //check if the interrupt comes from TIM3(Solder PWM)
   {
-    delay(7000);
+    delay(4000);
     HAL_ADC_Start(&hadc1);
     getButtonState(&EncBtn);
     getButtonState(&Solder_off_btn);
@@ -320,6 +344,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     
 
     //-----------Solder timeout-------------------------------------------------
+    // In case of Hakko907 handle F_solder_switch variable is allways become 0.
     if((Solder_temp_z - Solder_temp_z_former) != 0) F_encoder_change_value = 0;
     else F_encoder_change_value = 1; // if encoder changed its value, timeout reset
     Solder_timeout_cnt = (Solder_timeout_cnt + 1) * (F_solder_switch & F_encoder_change_value);
@@ -329,7 +354,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
       Solder_timeout_cnt = TimeoutTime * 100;
     }
     else F_solder_timeout = 1;
-        
+
+    
     //---------Protection from Fan thermocouple disconnection-------------------
     if(U_fan_temp > 1.05) F_fan_temp_protect = 1;
     else F_fan_temp_protect = 0;
@@ -337,7 +363,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     if(Fan_fan_percent < 30)F_fan_blower_protect = 1;
     else F_fan_blower_protect = 0;
     //---------Protection from solder disconnection-----------------------------
-    if(U_solder_temp > 1.075) F_solder_temp_protect = 1;
+    if(U_solder_temp > 1.075) F_solder_temp_protect = 1; //Or overheat in case of H907 handle
     else F_solder_temp_protect = 0;
     
     //---F_fan-----F_solder-----------------------------------------------------
@@ -424,21 +450,36 @@ int main(void)
   __IO uint32_t ID_read;
   sEE_ReadBuffer(&hspi2, (uint8_t*)&ID_read, EE_ID_ADDR, 8);
   sEE_ReadBuffer(&hspi2, (uint8_t*)&ID_read, EE_ID_ADDR, 8);//Was error here, have to read 2 times
-  //ID_read = 0;
-  //sEE_WriteBuffer(&hspi2, (uint8_t*)&ID_read, EE_ID_ADDR, 4);
-  //ID_read = ID_EE;
   
-
+  //Erase EE_ID so eeprom will fill with default values. Kind of hard reset.
+  //To reset need to push Switch Off Solder Button during turn on solder station.
+  if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_14) == GPIO_PIN_RESET)
+  {
+    HAL_Delay(1000);
+    if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_14) == GPIO_PIN_RESET)
+    {
+      ID_read = 0;
+      sEE_WriteBuffer(&hspi2, (uint8_t*)&ID_read, EE_ID_ADDR, 4);
+      for(uint8_t i = 0; i <10; i++)//LED blinking fast 
+      {
+        HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
+        HAL_Delay(50);
+      }
+    }
+  }
   
   if(ID_read != ID_EE)
   {
-    //k and b scaling coeffs for solder tips
+    //k and b scaling coeffs for solder tips T12 and Hakko907
     for(uint8_t i = 0; i < 5; i++)  
     {
       uint16_t address1 =  i * 8;
       uint16_t address2 = address1 + 4;
-      sEE_WriteBuffer(&hspi2, (uint8_t*)&k_solder_default, EE_CAL_COEFF_SOLDER_ADDR + address1, 4);
-      sEE_WriteBuffer(&hspi2, (uint8_t*)&b_solder_default, EE_CAL_COEFF_SOLDER_ADDR + address2, 4);
+      sEE_WriteBuffer(&hspi2, (uint8_t*)&k_solder_T12_default, EE_CAL_COEFF_SOLDER_T12_ADDR + address1, 4);
+      sEE_WriteBuffer(&hspi2, (uint8_t*)&b_solder_T12_default, EE_CAL_COEFF_SOLDER_T12_ADDR + address2, 4);
+      
+      sEE_WriteBuffer(&hspi2, (uint8_t*)&k_solder_H907_default, EE_CAL_COEFF_SOLDER_907_ADDR + address1, 4);
+      sEE_WriteBuffer(&hspi2, (uint8_t*)&b_solder_H907_default, EE_CAL_COEFF_SOLDER_907_ADDR + address2, 4);
     }
     //k and b scaling coeffs for fan
     sEE_WriteBuffer(&hspi2, (uint8_t*)&k_fan_default, EE_CAL_COEFF_FAN_ADDR, 4);
@@ -449,7 +490,11 @@ int main(void)
     sEE_WriteBuffer(&hspi2, (uint8_t*)&Temp_z_default, EE_TEMP_Z_SOLDER_ADDR, 2);
     sEE_WriteBuffer(&hspi2, (uint8_t*)&Temp_z_default, EE_TEMP_Z_FAN_ADDR, 2);
     
+    //Type of solder, T-12 or 907 handle
+    sEE_WriteBuffer(&hspi2, (uint8_t*)&soldertype, EE_SOLDER_TYPE_ADDR, 1);
+    //Number of current solder tip
     sEE_WriteBuffer(&hspi2, (uint8_t*)&N_tip_default, EE_TIP_N_ADDR, 1);
+    //ID
     ID_read = ID_EE;
     sEE_WriteBuffer(&hspi2, (uint8_t*)&ID_read, EE_ID_ADDR, 4);
     
@@ -457,16 +502,27 @@ int main(void)
     SSD1306_UpdateScreen(); 
     HAL_Delay(2000);
   } 
+  
+  
   sEE_ReadBuffer(&hspi2, (uint8_t*)&TimeoutTime, EE_TIMEOUT_ADDR, 2);
   
   sEE_ReadBuffer(&hspi2, (uint8_t*)&Solder_temp_z, EE_TEMP_Z_SOLDER_ADDR, 2);
   sEE_ReadBuffer(&hspi2, (uint8_t*)&Fan_temp_z, EE_TEMP_Z_FAN_ADDR, 2);
   sEE_ReadBuffer(&hspi2, (uint8_t*)&N_solder_tip, EE_TIP_N_ADDR, 1);
   
+  sEE_ReadBuffer(&hspi2, (uint8_t*)&soldertype, EE_SOLDER_TYPE_ADDR, 1);
   uint16_t address1 =  (N_solder_tip -1) * 8;
   uint16_t address2 = address1 + 4;
-  sEE_ReadBuffer(&hspi2, (uint8_t*)&k_solder, EE_CAL_COEFF_SOLDER_ADDR + address1, 4);
-  sEE_ReadBuffer(&hspi2, (uint8_t*)&b_solder, EE_CAL_COEFF_SOLDER_ADDR + address2, 4);
+  if(soldertype == T_12)
+  {
+    sEE_ReadBuffer(&hspi2, (uint8_t*)&k_solder, EE_CAL_COEFF_SOLDER_T12_ADDR + address1, 4);
+    sEE_ReadBuffer(&hspi2, (uint8_t*)&b_solder, EE_CAL_COEFF_SOLDER_T12_ADDR + address2, 4);
+  }
+  else if(soldertype == HAKKO_907)
+  {
+    sEE_ReadBuffer(&hspi2, (uint8_t*)&k_solder, EE_CAL_COEFF_SOLDER_907_ADDR + address1, 4);
+    sEE_ReadBuffer(&hspi2, (uint8_t*)&b_solder, EE_CAL_COEFF_SOLDER_907_ADDR + address2, 4);
+  }
   
   sEE_ReadBuffer(&hspi2, (uint8_t*)&k_fan, EE_CAL_COEFF_FAN_ADDR, 4);
   sEE_ReadBuffer(&hspi2, (uint8_t*)&b_fan, EE_CAL_COEFF_FAN_ADDR + 4, 4);
@@ -577,8 +633,8 @@ int main(void)
     
     //Filtering temperature for display
     Solder_filter_array[cnt_filter] = Solder_Thermocouple_temp;
-    Fan_filter_array[cnt_filter] = Fan_Thermocouple_temp;
-    if(++cnt_filter >= T_FILTER_N)
+    Fan_filter_array[cnt_filter++] = Fan_Thermocouple_temp;
+    if(cnt_filter >= T_FILTER_N)
     {
       cnt_filter = 0;
     }

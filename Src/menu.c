@@ -27,7 +27,6 @@ static void Calibrate_solder(void);
 static void Calibrate_fan(void);
 static void GoBack(void);
 uint8_t inputUintCoeff(uint32_t *tmp, uint8_t Kp);
-static void setSolderKp(void);
 char* menuText(int8_t menuShift);
 
 // Menus  Name | Next | Prev | Parent | Child | SelectFunction | EnterFunction | Text
@@ -35,7 +34,7 @@ MENU_ITEM(Menu_1, Menu_2, Menu_6, NULL_MENU, Menu_1_1, NULL, NULL, "1. Calibrate
 MENU_ITEM(Menu_2, Menu_3, Menu_1, NULL_MENU, Menu_2_1, NULL, NULL,"2. Set Solder tip");
 MENU_ITEM(Menu_3, Menu_4, Menu_2, NULL_MENU, NULL_MENU, NULL, SetTimeout, "3. Set solder timeout");
 MENU_ITEM(Menu_4, Menu_5, Menu_3, NULL_MENU, Menu_4_1, NULL, NULL, "4. Reset");
-MENU_ITEM(Menu_5, Menu_6, Menu_4, NULL_MENU, Menu_5_1, NULL, NULL, "5. Set coefficients");
+MENU_ITEM(Menu_5, Menu_6, Menu_4, NULL_MENU, NULL_MENU, NULL, SetSolderType, "5. Set solder type");
 MENU_ITEM(Menu_6, Menu_1, Menu_5, NULL_MENU, NULL_MENU, NULL, ExitMenu, "6. Exit");
 
 MENU_ITEM(Menu_1_1, Menu_1_2, Menu_1_3, Menu_1, NULL_MENU, NULL, Calibrate_solder, "Solder");
@@ -53,99 +52,100 @@ MENU_ITEM(Menu_4_1, Menu_4_2, Menu_4_3, NULL_MENU, NULL_MENU, NULL, Reset_solder
 MENU_ITEM(Menu_4_2, Menu_4_3, Menu_4_1, NULL_MENU, NULL_MENU, NULL, Reset_fan, "Reset Fan");
 MENU_ITEM(Menu_4_3, Menu_4_1, Menu_4_2, Menu_4, NULL_MENU, NULL, GoBack, "Back");
 
-MENU_ITEM(Menu_5_1, Menu_5_2, Menu_5_3, Menu_5, Menu_5_1_1, NULL, NULL, "Set Solder coefficients");
-MENU_ITEM(Menu_5_2, Menu_5_3, Menu_5_1, Menu_5, Menu_5_2_1, NULL, NULL, "Set Fan Coefficients");
-MENU_ITEM(Menu_5_3, Menu_5_1, Menu_5_2, Menu_5, NULL_MENU, NULL, GoBack, "Back");
 
-MENU_ITEM(Menu_5_1_1, Menu_5_1_2, Menu_5_1_3, Menu_5_1, NULL_MENU, NULL, setSolderKp, "Set Kp");
-MENU_ITEM(Menu_5_1_2, Menu_5_1_3, Menu_5_1_1, Menu_5_1, NULL_MENU, NULL, NULL, "Set Ti");
-MENU_ITEM(Menu_5_1_3, Menu_5_1_1, Menu_5_1_2, Menu_5_1, NULL_MENU, NULL, GoBack, "Back");
-
-MENU_ITEM(Menu_5_2_1, Menu_5_2_2, Menu_5_2_3, Menu_5_2, NULL_MENU, NULL, NULL, "Set Kp");
-MENU_ITEM(Menu_5_2_2, Menu_5_2_3, Menu_5_2_1, Menu_5_2, NULL_MENU, NULL, NULL, "Set Ti");
-MENU_ITEM(Menu_5_2_3, Menu_5_2_1, Menu_5_2_2, Menu_5_2, NULL_MENU, NULL, GoBack, "Back");
-
-
-//inline void Encoder_Rollover(void)
-//{
-//  uint16_t tim2cr1 = TIM2 -> CR1;
-//  tim2cr1 = TIM2 -> CR1;
-//  tim2cr1 &= 0xFF9F; //CMS = 00, encoder value rollover
-//  TIM2 -> CR1 = tim2cr1;
-//}
-//
-//inline void Encoder_No_Rollover(void)
-//{
-//  uint16_t tim2cr1 = TIM2 -> CR1;
-//  tim2cr1 |= 0x0060; //CMS = 11, encoder value max = arr, no rollover 
-//  TIM2 -> CR1 = tim2cr1;
-//}
-
-static void setSolderKp(void)
+static void SetSolderType(void)
 {
-  uint32_t tmparr;
+  uint16_t tmparr;
+  uint8_t counter_temp;
+  SolderType soldertype_tmp;
+  uint16_t base_address;
+  
+  BtnCntr_Menu = 0;
+  tmparr = __HAL_TIM_GET_AUTORELOAD(&htim2);
   
   SSD1306_DrawFilledRectangle(0, 17, 127, 46, SSD1306_COLOR_BLACK);
   SSD1306_GotoXY(1, 17);
-  SSD1306_Puts("Enter Solder Kp", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
-  SSD1306_UpdateScreen();
+  SSD1306_Puts("Enter handle type:", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
   
-  __IO uint16_t tim2cr1 = TIM2 -> CR1;
-  tim2cr1 |= 0x0060; //CMS = 11, encoder value max = arr, no rollover 
-  TIM2 -> CR1 = tim2cr1;
-  tmparr = __HAL_TIM_GET_AUTORELOAD(&htim2);
-  
-  __HAL_TIM_SET_COUNTER(&htim2, Kp_Solder * 2 + 1);
-  __HAL_TIM_SET_AUTORELOAD(&htim2, 61);
-  BtnCntr_Menu = 0;
-  
-  if(inputUintCoeff(&tmparr, Kp_Solder)) return;
-  
-  sEE_WriteBuffer(&hspi2, &Kp_Solder, EE_KP_SOLDER_ADDR, 1);
-  
-  BtnCntr_Menu = 0;
-  tim2cr1 = TIM2 -> CR1;
-  tim2cr1 &= 0xFF9F; //CMS = 00, encoder value rollover
-  TIM2 -> CR1 = tim2cr1;
-  SSD1306_DrawFilledRectangle(0, 17, 127, 46, SSD1306_COLOR_BLACK);
-  SSD1306_GotoXY(1, 27);
-  SSD1306_Puts( "Set solder Kp finished", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
-  SSD1306_UpdateScreen();
-  HAL_Delay(3000);
-  
-}
-
-
-uint8_t inputUintCoeff(uint32_t *tmp, uint8_t Kp)
-{
-  uint16_t counter_temp;
+  ENCODER_ROLLOVER
+  __HAL_TIM_SET_COUNTER(&htim2, 0);
+  __HAL_TIM_SET_AUTORELOAD(&htim2, 3);
   while(!BtnCntr_Menu)
   {
     BtnCntr_Menu = 0;
     counter_temp = (__HAL_TIM_GET_COUNTER(&htim2)) / 2;
-    SSD1306_DrawFilledRectangle(30, 27, 127, 27, SSD1306_COLOR_BLACK);
-    SSD1306_GotoXY(30, 27);     
-    SSD1306_printf(&amperzand_24ptFontInfo, "%d", counter_temp);
+    SSD1306_DrawFilledRectangle(5, 27, 127, 27, SSD1306_COLOR_BLACK);
+    SSD1306_GotoXY(15, 35);
+    if(counter_temp == 0)
+    {
+      SSD1306_Puts("T-12 ", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+      soldertype_tmp = T_12;
+    }
+    else
+    {
+      SSD1306_Puts("Hakko 907 ", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+      soldertype_tmp = HAKKO_907;
+    }
     SSD1306_UpdateScreen();
-    if(BtnCntr_LongPush)//exit setting timeout without eeprom write
+    
+    if(BtnCntr_LongPush)//exit setting solder type without eeprom write
     {
       BtnCntr_LongPush = 0;
-      __HAL_TIM_SET_AUTORELOAD(&htim2, *tmp);
-      __IO uint16_t tim2cr1 = TIM2 -> CR1;
-      tim2cr1 = TIM2 -> CR1;
-      tim2cr1 &= 0xFF9F; //CMS = 00, encoder value rollover
-      TIM2 -> CR1 = tim2cr1;
-      return 1;
+      __HAL_TIM_SET_AUTORELOAD(&htim2, tmparr);
+      ENCODER_ROLLOVER
+      return;
     }
     HAL_Delay(50);
   }
-  return 0; //OK
+  BtnCntr_Menu = 0;
+  soldertype = soldertype_tmp;
+  sEE_WriteBuffer(&hspi2, (uint8_t*)&soldertype, EE_SOLDER_TYPE_ADDR, 1);
+  
+  //reload solder coefficients
+  uint16_t address1 =  (N_solder_tip -1) * 8;
+  uint16_t address2 = address1 + 4;
+  if(soldertype == T_12)
+  {
+     base_address = EE_CAL_COEFF_SOLDER_T12_ADDR;
+  }
+  else 
+  {
+     base_address = EE_CAL_COEFF_SOLDER_907_ADDR;
+  }
+  sEE_ReadBuffer(&hspi2, (uint8_t*)&k_solder, base_address + address1, 4);
+  sEE_ReadBuffer(&hspi2, (uint8_t*)&b_solder, base_address + address2, 4);
+  
+  
+  SSD1306_DrawFilledRectangle(0, 17, 127, 46, SSD1306_COLOR_BLACK);
+  SSD1306_GotoXY(1, 17);
+  SSD1306_Puts( "Solder type is set to", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  SSD1306_GotoXY(15, 35);
+  if(soldertype == T_12)
+  {
+  SSD1306_Puts( "T-12", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  }
+  else 
+  {
+    SSD1306_Puts( "Hakko 907", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  }
+  SSD1306_UpdateScreen();
+  __HAL_TIM_SET_AUTORELOAD(&htim2, tmparr);
+  HAL_Delay(3000);
 }
+
 
 static void SetTimeout(void)
 {
   uint16_t tmparr, counter_temp;
-   
+  if(soldertype == HAKKO_907) 
+  {
+    SSD1306_DrawFilledRectangle(0, 17, 127, 46, SSD1306_COLOR_BLACK);
+    SSD1306_GotoXY(1, 27);
+    SSD1306_Puts("Nothing to enter here.", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+    SSD1306_UpdateScreen();
+    HAL_Delay(3000);
+    return;
+  }
   SSD1306_DrawFilledRectangle(0, 17, 127, 46, SSD1306_COLOR_BLACK);
   SSD1306_GotoXY(1, 17);
   SSD1306_Puts("Enter timeout in sec.", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
@@ -186,8 +186,10 @@ static void SetTimeout(void)
   tim2cr1 &= 0xFF9F; //CMS = 00, encoder value rollover
   TIM2 -> CR1 = tim2cr1;
   SSD1306_DrawFilledRectangle(0, 17, 127, 46, SSD1306_COLOR_BLACK);
-  SSD1306_GotoXY(1, 27);
-  SSD1306_Puts( "Set timeout finished", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  SSD1306_GotoXY(1, 17);
+  SSD1306_Puts( "Timeout is set to", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  SSD1306_GotoXY(15, 35);
+  SSD1306_printf(&segoeUI_8ptFontInfo, "%d s", TimeoutTime);
   SSD1306_UpdateScreen();
   HAL_Delay(3000);
   
@@ -196,15 +198,37 @@ static void SetTimeout(void)
 
 static void Reset_solder(void)
 {
+  uint16_t base_address;
+  float k_default, b_default;
   
   uint16_t address1 =  (N_solder_tip -1) * 8;
   uint16_t address2 = address1 + 4;
-  sEE_WriteBuffer(&hspi2, (uint8_t*)&k_solder_default, EE_CAL_COEFF_SOLDER_ADDR + address1, 4);
-  sEE_WriteBuffer(&hspi2, (uint8_t*)&b_solder_default, EE_CAL_COEFF_SOLDER_ADDR + address2, 4);
-  k_solder = k_solder_default;
-  b_solder = b_solder_default;
+  
+  if(soldertype == T_12) 
+  {
+    base_address = EE_CAL_COEFF_SOLDER_T12_ADDR;
+    k_default = k_solder_T12_default;
+    b_default = b_solder_T12_default;
+  }
+  else  
+  {
+    base_address = EE_CAL_COEFF_SOLDER_907_ADDR;
+    k_default = k_solder_H907_default;
+    b_default = b_solder_H907_default;
+  }
+  
+  sEE_WriteBuffer(&hspi2, (uint8_t*)&k_default, base_address + address1, 4);
+  sEE_WriteBuffer(&hspi2, (uint8_t*)&b_default, base_address + address2, 4);
+  k_solder = k_default;
+  b_solder = b_default;
   SSD1306_DrawFilledRectangle(0, 17, 127, 46, SSD1306_COLOR_BLACK);
   SSD1306_GotoXY(5, 25);
+  if(soldertype == T_12) 
+  {
+    SSD1306_Puts( "T-12 handle", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  }
+  else SSD1306_Puts( "Hakko907 handle", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  SSD1306_GotoXY(5, 45);
   SSD1306_printf(&segoeUI_8ptFontInfo, "Solder tip # %d reset.",  N_solder_tip);
   SSD1306_UpdateScreen();
   HAL_Delay(3000);
@@ -235,8 +259,8 @@ static void getN_Solder_tip(void)
 
   uint16_t address1 =  (N_solder_tip -1) * 8;
   uint16_t address2 = address1 + 4;
-  sEE_ReadBuffer(&hspi2, (uint8_t*)&k_solder, EE_CAL_COEFF_SOLDER_ADDR + address1, 4);
-  sEE_ReadBuffer(&hspi2, (uint8_t*)&b_solder, EE_CAL_COEFF_SOLDER_ADDR + address2, 4);
+  sEE_ReadBuffer(&hspi2, (uint8_t*)&k_solder, EE_CAL_COEFF_SOLDER_T12_ADDR + address1, 4);
+  sEE_ReadBuffer(&hspi2, (uint8_t*)&b_solder, EE_CAL_COEFF_SOLDER_T12_ADDR + address2, 4);
   
   sEE_WriteBuffer(&hspi2, (uint8_t*)&N_solder_tip, EE_TIP_N_ADDR, 2);
   
@@ -270,7 +294,7 @@ static void ExitMenu(void)
 static void Calibrate_solder(void)
 {
   static float temp_calibration_solder1, adc_calibration_solder1, temp_calibration_solder2, adc_calibration_solder2;
-  uint16_t counter_pwm, counter_temp;
+  uint16_t counter_pwm, counter_temp, base_address;
   
   ENCODER_NO_ROLLOVER
   
@@ -310,7 +334,7 @@ static void Calibrate_solder(void)
   {
     counter_temp = (__HAL_TIM_GET_COUNTER(&htim2) / 2);
     temp_calibration_solder1 = counter_temp;
-    adc_calibration_solder1 = Solder_Thermocouple_adc;
+    adc_calibration_solder1 = Solder_Thermocouple_adc * !(bool)soldertype + Solder_H907_adc * (bool)soldertype;
     SSD1306_DrawFilledRectangle(30, 27, 127, 27, SSD1306_COLOR_BLACK);
     SSD1306_GotoXY(30, 27);     
     SSD1306_printf(&amperzand_24ptFontInfo, "%d",  counter_temp);
@@ -359,7 +383,7 @@ static void Calibrate_solder(void)
   {
     counter_temp = (__HAL_TIM_GET_COUNTER(&htim2) / 2);
     temp_calibration_solder2 = counter_temp;
-    adc_calibration_solder2 = Solder_Thermocouple_adc;
+    adc_calibration_solder2 = Solder_Thermocouple_adc * !(bool)soldertype + Solder_H907_adc * (bool)soldertype;
     SSD1306_DrawFilledRectangle(30, 27, 127, 27, SSD1306_COLOR_BLACK);
     SSD1306_GotoXY(30, 27);     
     SSD1306_printf(&amperzand_24ptFontInfo, "%d",  counter_temp);
@@ -378,10 +402,17 @@ static void Calibrate_solder(void)
   
   __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, MAX_CCR_LOAD_SOLDER);
   
+  
+  if(soldertype == T_12) 
+  {
+    base_address = EE_CAL_COEFF_SOLDER_T12_ADDR;
+  }
+  else base_address = EE_CAL_COEFF_SOLDER_907_ADDR;
+ 
   uint16_t address1 =  (N_solder_tip -1) * 8;
   uint16_t address2 = address1 + 4;
-  sEE_WriteBuffer(&hspi2, (uint8_t*)&k_solder, EE_CAL_COEFF_SOLDER_ADDR + address1, 4);
-  sEE_WriteBuffer(&hspi2, (uint8_t*)&b_solder, EE_CAL_COEFF_SOLDER_ADDR + address2, 4);
+  sEE_WriteBuffer(&hspi2, (uint8_t*)&k_solder, base_address + address1, 4);
+  sEE_WriteBuffer(&hspi2, (uint8_t*)&b_solder, base_address + address2, 4);
   
   BtnCntr_Menu = 0;
   ENCODER_ROLLOVER
