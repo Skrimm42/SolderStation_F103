@@ -82,8 +82,8 @@ extern bool F_solder, F_solder_switch, F_solder_timeout, F_solder_enable, F_fan,
      F_fan_blower_protect, F_encoder_change_value, F_solder_btn_off;
 extern bool BtnCntr_ShortPush, BtnCntr_LongPush, BtnCntr_Menu;
 
-extern int16_t Solder_filter_array[T_FILTER_N + 1];
-extern int16_t Fan_filter_array[T_FILTER_N + 1];
+extern int16_t Solder_filter_array[T_FILTER_N];
+extern int16_t Fan_filter_array[T_FILTER_N];
 
 extern const char strNULL[];
 extern uint8_t Kp_Solder;

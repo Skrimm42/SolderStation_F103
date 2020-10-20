@@ -633,8 +633,8 @@ int main(void)
     
     //Filtering temperature for display
     Solder_filter_array[cnt_filter] = Solder_Thermocouple_temp;
-    Fan_filter_array[cnt_filter] = Fan_Thermocouple_temp;
-    if(++cnt_filter >= T_FILTER_N)
+    Fan_filter_array[cnt_filter++] = Fan_Thermocouple_temp;
+    if(cnt_filter >= T_FILTER_N)
     {
       cnt_filter = 0;
     }

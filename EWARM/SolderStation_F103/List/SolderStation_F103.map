@@ -1,6 +1,6 @@
 ###############################################################################
 #
-# IAR ELF Linker V8.50.6.265/W32 for ARM                  19/Oct/2020  20:59:30
+# IAR ELF Linker V8.50.6.265/W32 for ARM                  20/Oct/2020  21:36:23
 # Copyright 2007-2020 IAR Systems AB.
 #
 #    Output file  =
@@ -8,7 +8,7 @@
 #    Map file     =
 #        D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\EWARM\SolderStation_F103\List\SolderStation_F103.map
 #    Command line =
-#        -f C:\Users\denpr\AppData\Local\Temp\EW49D6.tmp
+#        -f C:\Users\denpr\AppData\Local\Temp\EW7447.tmp
 #        (D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\EWARM\SolderStation_F103\Obj\button_drv.o
 #        D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\EWARM\SolderStation_F103\Obj\const_var.o
 #        D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\EWARM\SolderStation_F103\Obj\main.o
@@ -305,7 +305,7 @@ initialize by copy { rw };
     .data            inited   0x2000'00bf     0x1  stm32f1xx_hal.o [1]
                             - 0x2000'00c0    0xc0
 
-"P2", part 2 of 3:                          0x79c
+"P2", part 2 of 3:                          0x794
   .bss               zero     0x2000'00c0   0x400  ssd1306.o [1]
   .bss               zero     0x2000'04c0    0x58  main.o [1]
   .bss               zero     0x2000'0518    0x54  main.o [1]
@@ -317,11 +317,13 @@ initialize by copy { rw };
   .bss               zero     0x2000'06cc    0x30  const_var.o [1]
   .bss               zero     0x2000'06fc    0x30  main.o [1]
   .bss               zero     0x2000'072c    0x30  main.o [1]
-  .bss               zero     0x2000'075c    0x18  const_var.o [1]
-  .bss               zero     0x2000'0774    0x18  const_var.o [1]
-  .bss               zero     0x2000'078c    0x14  ssd1306.o [1]
-  .bss               zero     0x2000'07a0    0x10  const_var.o [1]
-  .bss               zero     0x2000'07b0    0x10  const_var.o [1]
+  .bss               zero     0x2000'075c    0x14  const_var.o [1]
+  .bss               zero     0x2000'0770    0x14  const_var.o [1]
+  .bss               zero     0x2000'0784    0x14  ssd1306.o [1]
+  .bss               zero     0x2000'0798    0x10  const_var.o [1]
+  .bss               zero     0x2000'07a8    0x10  const_var.o [1]
+  .bss               zero     0x2000'07b8     0x4  const_var.o [1]
+  .bss               zero     0x2000'07bc     0x4  const_var.o [1]
   .bss               zero     0x2000'07c0     0x4  const_var.o [1]
   .bss               zero     0x2000'07c4     0x4  const_var.o [1]
   .bss               zero     0x2000'07c8     0x4  const_var.o [1]
@@ -334,19 +336,21 @@ initialize by copy { rw };
   .bss               zero     0x2000'07e4     0x4  const_var.o [1]
   .bss               zero     0x2000'07e8     0x4  const_var.o [1]
   .bss               zero     0x2000'07ec     0x4  const_var.o [1]
-  .bss               zero     0x2000'07f0     0x4  const_var.o [1]
-  .bss               zero     0x2000'07f4     0x4  const_var.o [1]
+  .bss               zero     0x2000'07f0     0x4  menu.o [1]
+  .bss               zero     0x2000'07f4     0x4  menu.o [1]
   .bss               zero     0x2000'07f8     0x4  menu.o [1]
   .bss               zero     0x2000'07fc     0x4  menu.o [1]
   .bss               zero     0x2000'0800     0x4  menu.o [1]
   .bss               zero     0x2000'0804     0x4  menu.o [1]
   .bss               zero     0x2000'0808     0x4  menu.o [1]
   .bss               zero     0x2000'080c     0x4  menu.o [1]
-  .bss               zero     0x2000'0810     0x4  menu.o [1]
-  .bss               zero     0x2000'0814     0x4  menu.o [1]
-  .bss               zero     0x2000'0818     0x4  MicroMenu.o [1]
-  .bss               zero     0x2000'081c     0x4  stm32f1xx_hal.o [1]
-  .bss               zero     0x2000'0820     0x4  xfail_s.o [2]
+  .bss               zero     0x2000'0810     0x4  MicroMenu.o [1]
+  .bss               zero     0x2000'0814     0x4  stm32f1xx_hal.o [1]
+  .bss               zero     0x2000'0818     0x4  xfail_s.o [2]
+  .bss               zero     0x2000'081c     0x2  const_var.o [1]
+  .bss               zero     0x2000'081e     0x2  const_var.o [1]
+  .bss               zero     0x2000'0820     0x2  const_var.o [1]
+  .bss               zero     0x2000'0822     0x2  const_var.o [1]
   .bss               zero     0x2000'0824     0x2  const_var.o [1]
   .bss               zero     0x2000'0826     0x2  const_var.o [1]
   .bss               zero     0x2000'0828     0x2  const_var.o [1]
@@ -355,13 +359,17 @@ initialize by copy { rw };
   .bss               zero     0x2000'082e     0x2  const_var.o [1]
   .bss               zero     0x2000'0830     0x2  const_var.o [1]
   .bss               zero     0x2000'0832     0x2  const_var.o [1]
-  .bss               zero     0x2000'0834     0x2  const_var.o [1]
-  .bss               zero     0x2000'0836     0x2  const_var.o [1]
-  .bss               zero     0x2000'0838     0x2  const_var.o [1]
-  .bss               zero     0x2000'083a     0x2  const_var.o [1]
-  .bss               zero     0x2000'083c     0x2  main.o [1]
-  .bss               zero     0x2000'083e     0x2  main.o [1]
-  .bss               zero     0x2000'0840     0x2  main.o [1]
+  .bss               zero     0x2000'0834     0x2  main.o [1]
+  .bss               zero     0x2000'0836     0x2  main.o [1]
+  .bss               zero     0x2000'0838     0x2  main.o [1]
+  .bss               zero     0x2000'083a     0x1  const_var.o [1]
+  .bss               zero     0x2000'083b     0x1  const_var.o [1]
+  .bss               zero     0x2000'083c     0x1  const_var.o [1]
+  .bss               zero     0x2000'083d     0x1  const_var.o [1]
+  .bss               zero     0x2000'083e     0x1  const_var.o [1]
+  .bss               zero     0x2000'083f     0x1  const_var.o [1]
+  .bss               zero     0x2000'0840     0x1  const_var.o [1]
+  .bss               zero     0x2000'0841     0x1  const_var.o [1]
   .bss               zero     0x2000'0842     0x1  const_var.o [1]
   .bss               zero     0x2000'0843     0x1  const_var.o [1]
   .bss               zero     0x2000'0844     0x1  const_var.o [1]
@@ -373,33 +381,25 @@ initialize by copy { rw };
   .bss               zero     0x2000'084a     0x1  const_var.o [1]
   .bss               zero     0x2000'084b     0x1  const_var.o [1]
   .bss               zero     0x2000'084c     0x1  const_var.o [1]
-  .bss               zero     0x2000'084d     0x1  const_var.o [1]
-  .bss               zero     0x2000'084e     0x1  const_var.o [1]
-  .bss               zero     0x2000'084f     0x1  const_var.o [1]
-  .bss               zero     0x2000'0850     0x1  const_var.o [1]
-  .bss               zero     0x2000'0851     0x1  const_var.o [1]
-  .bss               zero     0x2000'0852     0x1  const_var.o [1]
-  .bss               zero     0x2000'0853     0x1  const_var.o [1]
-  .bss               zero     0x2000'0854     0x1  const_var.o [1]
-  .bss               zero     0x2000'0855     0x1  main.o [1]
-  .bss               zero     0x2000'0856     0x1  main.o [1]
-  .bss               zero     0x2000'0857     0x1  main.o [1]
-  .bss               zero     0x2000'0858     0x1  main.o [1]
-  .bss               zero     0x2000'0859     0x1  main.o [1]
-                            - 0x2000'085a   0x79a
+  .bss               zero     0x2000'084d     0x1  main.o [1]
+  .bss               zero     0x2000'084e     0x1  main.o [1]
+  .bss               zero     0x2000'084f     0x1  main.o [1]
+  .bss               zero     0x2000'0850     0x1  main.o [1]
+  .bss               zero     0x2000'0851     0x1  main.o [1]
+                            - 0x2000'0852   0x792
 
 "P2", part 3 of 3:                          0x400
-  CSTACK                      0x2000'0860   0x400  <Block>
-    CSTACK           uninit   0x2000'0860   0x400  <Block tail>
-                            - 0x2000'0c60   0x400
+  CSTACK                      0x2000'0858   0x400  <Block>
+    CSTACK           uninit   0x2000'0858   0x400  <Block tail>
+                            - 0x2000'0c58   0x400
 
 Unused ranges:
 
          From           To      Size
          ----           --      ----
    0x800'c0bd   0x801'ffff  0x1'3f43
-  0x2000'085c  0x2000'085f       0x4
-  0x2000'0c60  0x2000'4fff    0x43a0
+  0x2000'0854  0x2000'0857       0x4
+  0x2000'0c58  0x2000'4fff    0x43a8
 
 
 *******************************************************************************
@@ -409,8 +409,8 @@ Unused ranges:
           Address      Size
           -------      ----
 Zero (__iar_zero_init3)
-    1 destination range, total size 0x79a:
-          0x2000'00c0  0x79a
+    1 destination range, total size 0x792:
+          0x2000'00c0  0x792
 
 Copy/lz77 (__iar_lz77_init_single3)
     1 source range, total size 0x69 (54% of destination):
@@ -433,7 +433,7 @@ command line/config:
 D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\EWARM\SolderStation_F103\Obj: [1]
     MicroMenu.o                 104       26        8
     button_drv.o                226
-    const_var.o                           52      230
+    const_var.o                           52      222
     main.o                    6'156      112      631
     menu.o                    4'248      996       32
     sEEPROM.o                   760
@@ -456,7 +456,7 @@ D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\EWARM\Solder
     stm32f1xx_it.o               80
     system_stm32f1xx.o           88       26        4
     -------------------------------------------------
-    Total:                   32'564    7'449    2'006
+    Total:                   32'564    7'449    1'998
 
 dl7M_tlf.a: [2]
     abort.o                       6
@@ -523,7 +523,7 @@ shb_l.a: [5]
     Gaps                         21        2
     Linker created                        32    1'024
 -----------------------------------------------------
-    Grand Total:             41'783    7'558    3'162
+    Grand Total:             41'783    7'558    3'154
 
 
 *******************************************************************************
@@ -543,32 +543,32 @@ ADC_DMAHalfConvCplt      0x800'59dd    0xe  Code  Gb  stm32f1xx_hal_adc.o [1]
 ADC_Enable               0x800'58ad   0x6e  Code  Gb  stm32f1xx_hal_adc.o [1]
 AHBPrescTable            0x800'becc   0x10  Data  Gb  system_stm32f1xx.o [1]
 APBPrescTable            0x800'bf84    0x8  Data  Gb  system_stm32f1xx.o [1]
-BtnCntr_LongPush        0x2000'0853    0x1  Data  Gb  const_var.o [1]
-BtnCntr_Menu            0x2000'0854    0x1  Data  Gb  const_var.o [1]
-BtnCntr_ShortPush       0x2000'0852    0x1  Data  Gb  const_var.o [1]
+BtnCntr_LongPush        0x2000'084b    0x1  Data  Gb  const_var.o [1]
+BtnCntr_Menu            0x2000'084c    0x1  Data  Gb  const_var.o [1]
+BtnCntr_ShortPush       0x2000'084a    0x1  Data  Gb  const_var.o [1]
 BusFault_Handler         0x800'b997    0x2  Code  Gb  stm32f1xx_it.o [1]
 Button_Init              0x800'5ae3    0xa  Code  Gb  button_drv.o [1]
-CSTACK$$Base            0x2000'0860          --   Gb  - Linker created -
-CSTACK$$Limit           0x2000'0c60          --   Gb  - Linker created -
+CSTACK$$Base            0x2000'0858          --   Gb  - Linker created -
+CSTACK$$Limit           0x2000'0c58          --   Gb  - Linker created -
 CacheMore                0x800'9955   0x28  Code  Lc  xlocale_c.o [2]
 Calibrate_fan            0x800'7629  0x3ac  Code  Lc  menu.o [1]
 Calibrate_fan::adc_calibration_fan1
-                        0x2000'080c    0x4  Data  Lc  menu.o [1]
+                        0x2000'0804    0x4  Data  Lc  menu.o [1]
 Calibrate_fan::adc_calibration_fan2
-                        0x2000'0814    0x4  Data  Lc  menu.o [1]
+                        0x2000'080c    0x4  Data  Lc  menu.o [1]
 Calibrate_fan::temp_calibration_fan1
-                        0x2000'0808    0x4  Data  Lc  menu.o [1]
+                        0x2000'0800    0x4  Data  Lc  menu.o [1]
 Calibrate_fan::temp_calibration_fan2
-                        0x2000'0810    0x4  Data  Lc  menu.o [1]
+                        0x2000'0808    0x4  Data  Lc  menu.o [1]
 Calibrate_solder         0x800'7189  0x456  Code  Lc  menu.o [1]
 Calibrate_solder::adc_calibration_solder1
-                        0x2000'07fc    0x4  Data  Lc  menu.o [1]
+                        0x2000'07f4    0x4  Data  Lc  menu.o [1]
 Calibrate_solder::adc_calibration_solder2
-                        0x2000'0804    0x4  Data  Lc  menu.o [1]
+                        0x2000'07fc    0x4  Data  Lc  menu.o [1]
 Calibrate_solder::temp_calibration_solder1
-                        0x2000'07f8    0x4  Data  Lc  menu.o [1]
+                        0x2000'07f0    0x4  Data  Lc  menu.o [1]
 Calibrate_solder::temp_calibration_solder2
-                        0x2000'0800    0x4  Data  Lc  menu.o [1]
+                        0x2000'07f8    0x4  Data  Lc  menu.o [1]
 CurrentMenuItem         0x2000'0000    0x4  Data  Lc  MicroMenu.o [1]
 DMA1_Channel1_IRQHandler
                          0x800'b9a9    0xa  Code  Gb  stm32f1xx_it.o [1]
@@ -576,27 +576,27 @@ DMA1_Channel6_IRQHandler
                          0x800'b9b3    0xa  Code  Gb  stm32f1xx_it.o [1]
 DMA_SetConfig            0x800'27cd   0x2c  Code  Lc  stm32f1xx_hal_dma.o [1]
 DebugMon_Handler         0x800'b99d    0x2  Code  Gb  stm32f1xx_it.o [1]
-EncBtn                  0x2000'07a0   0x10  Data  Gb  const_var.o [1]
+EncBtn                  0x2000'0798   0x10  Data  Gb  const_var.o [1]
 ExitMenu                 0x800'7127   0x60  Code  Lc  menu.o [1]
-F_encoder_change_value  0x2000'0850    0x1  Data  Gb  const_var.o [1]
-F_fan                   0x2000'084a    0x1  Data  Gb  const_var.o [1]
-F_fan_blower_protect    0x2000'084f    0x1  Data  Gb  const_var.o [1]
-F_fan_enable            0x2000'084b    0x1  Data  Gb  const_var.o [1]
-F_fan_gerkon            0x2000'084c    0x1  Data  Gb  const_var.o [1]
-F_fan_temp_protect      0x2000'084d    0x1  Data  Gb  const_var.o [1]
-F_solder                0x2000'0847    0x1  Data  Gb  const_var.o [1]
-F_solder_btn_off        0x2000'0851    0x1  Data  Gb  const_var.o [1]
-F_solder_enable         0x2000'0849    0x1  Data  Gb  const_var.o [1]
-F_solder_switch         0x2000'0848    0x1  Data  Gb  const_var.o [1]
-F_solder_temp_protect   0x2000'084e    0x1  Data  Gb  const_var.o [1]
+F_encoder_change_value  0x2000'0848    0x1  Data  Gb  const_var.o [1]
+F_fan                   0x2000'0842    0x1  Data  Gb  const_var.o [1]
+F_fan_blower_protect    0x2000'0847    0x1  Data  Gb  const_var.o [1]
+F_fan_enable            0x2000'0843    0x1  Data  Gb  const_var.o [1]
+F_fan_gerkon            0x2000'0844    0x1  Data  Gb  const_var.o [1]
+F_fan_temp_protect      0x2000'0845    0x1  Data  Gb  const_var.o [1]
+F_solder                0x2000'083f    0x1  Data  Gb  const_var.o [1]
+F_solder_btn_off        0x2000'0849    0x1  Data  Gb  const_var.o [1]
+F_solder_enable         0x2000'0841    0x1  Data  Gb  const_var.o [1]
+F_solder_switch         0x2000'0840    0x1  Data  Gb  const_var.o [1]
+F_solder_temp_protect   0x2000'0846    0x1  Data  Gb  const_var.o [1]
 F_solder_timeout        0x2000'00bc    0x1  Data  Gb  const_var.o [1]
-Fan_Thermocouple_adc    0x2000'0832    0x2  Data  Gb  const_var.o [1]
-Fan_Thermocouple_temp   0x2000'083a    0x2  Data  Gb  const_var.o [1]
-Fan_fan_adc             0x2000'0834    0x2  Data  Gb  const_var.o [1]
-Fan_fan_percent         0x2000'0846    0x1  Data  Gb  const_var.o [1]
-Fan_filter_array        0x2000'0774   0x18  Data  Gb  const_var.o [1]
-Fan_temp_z              0x2000'082a    0x2  Data  Gb  const_var.o [1]
-Fan_temp_z_former       0x2000'082c    0x2  Data  Gb  const_var.o [1]
+Fan_Thermocouple_adc    0x2000'082a    0x2  Data  Gb  const_var.o [1]
+Fan_Thermocouple_temp   0x2000'0832    0x2  Data  Gb  const_var.o [1]
+Fan_fan_adc             0x2000'082c    0x2  Data  Gb  const_var.o [1]
+Fan_fan_percent         0x2000'083e    0x1  Data  Gb  const_var.o [1]
+Fan_filter_array        0x2000'0770   0x14  Data  Gb  const_var.o [1]
+Fan_temp_z              0x2000'0822    0x2  Data  Gb  const_var.o [1]
+Fan_temp_z_former       0x2000'0824    0x2  Data  Gb  const_var.o [1]
 GoBack                   0x800'79dd    0xe  Code  Lc  menu.o [1]
 HAL_ADCEx_Calibration_Start
                          0x800'5e55   0xec  Code  Gb  stm32f1xx_hal_adc_ex.o [1]
@@ -671,9 +671,9 @@ HAL_TIM_PWM_Start        0x800'621b   0xca  Code  Gb  stm32f1xx_hal_tim.o [1]
 HAL_TIM_PeriodElapsedCallback
                          0x800'3347  0x304  Code  Gb  main.o [1]
 HAL_TIM_PeriodElapsedCallback::Solder_timeout_cnt
-                        0x2000'083e    0x2  Data  Lc  main.o [1]
+                        0x2000'0836    0x2  Data  Lc  main.o [1]
 HAL_TIM_PeriodElapsedCallback::cnt_slowdown
-                        0x2000'083c    0x2  Data  Lc  main.o [1]
+                        0x2000'0834    0x2  Data  Lc  main.o [1]
 HAL_TIM_SlaveConfigSynchro
                          0x800'67a7   0x62  Code  Gb  stm32f1xx_hal_tim.o [1]
 HardFault_Handler        0x800'b993    0x2  Code  Gb  stm32f1xx_it.o [1]
@@ -726,7 +726,7 @@ MX_TIM1_Init             0x800'411d  0x130  Code  Lc  main.o [1]
 MX_TIM2_Init             0x800'424d   0x8a  Code  Lc  main.o [1]
 MX_TIM3_Init             0x800'42e5   0x8c  Code  Lc  main.o [1]
 MemManage_Handler        0x800'b995    0x2  Code  Gb  stm32f1xx_it.o [1]
-MenuWriteFunc           0x2000'0818    0x4  Data  Lc  MicroMenu.o [1]
+MenuWriteFunc           0x2000'0810    0x4  Data  Lc  MicroMenu.o [1]
 Menu_1                   0x800'bac0   0x28  Data  Gb  menu.o [1]
 Menu_1_1                 0x800'bbc0   0x20  Data  Gb  menu.o [1]
 Menu_1_2                 0x800'bd2c   0x1c  Data  Gb  menu.o [1]
@@ -751,7 +751,7 @@ Menu_Navigate            0x800'6b1b   0x32  Code  Gb  MicroMenu.o [1]
 NMI_Handler              0x800'b991    0x2  Code  Gb  stm32f1xx_it.o [1]
 NULL_MENU                0x800'bdf0   0x18  Data  Gb  MicroMenu.o [1]
 NVIC_EncodePriority      0x800'2b27   0x40  Code  Lc  stm32f1xx_hal_cortex.o [1]
-N_solder_tip            0x2000'0845    0x1  Data  Gb  const_var.o [1]
+N_solder_tip            0x2000'083d    0x1  Data  Gb  const_var.o [1]
 N_tip_default            0x800'6b12    0x1  Data  Gb  const_var.o [1]
 PendSV_Handler           0x800'b99f    0x2  Code  Gb  stm32f1xx_it.o [1]
 RCC_Delay                0x800'240d   0x26  Code  Lc  stm32f1xx_hal_rcc.o [1]
@@ -763,7 +763,7 @@ SPI_EndRxTransaction     0x800'8565   0x7c  Code  Lc  stm32f1xx_hal_spi.o [1]
 SPI_EndRxTxTransaction   0x800'85e1   0x2a  Code  Lc  stm32f1xx_hal_spi.o [1]
 SPI_WaitFlagStateUntilTimeout
                          0x800'848b   0xda  Code  Lc  stm32f1xx_hal_spi.o [1]
-SSD1306                 0x2000'078c   0x14  Data  Lc  ssd1306.o [1]
+SSD1306                 0x2000'0784   0x14  Data  Lc  ssd1306.o [1]
 SSD1306_Buffer          0x2000'00c0  0x400  Data  Lc  ssd1306.o [1]
 SSD1306_DrawFilledRectangle
                          0x800'4c97   0x84  Code  Gb  ssd1306.o [1]
@@ -781,15 +781,15 @@ SSD1306_printf           0x800'4d1b   0x58  Code  Gb  ssd1306.o [1]
 SVC_Handler              0x800'b99b    0x2  Code  Gb  stm32f1xx_it.o [1]
 SetSolderType            0x800'6b7d  0x1ca  Code  Lc  menu.o [1]
 SetTimeout               0x800'6d47  0x1b4  Code  Lc  menu.o [1]
-Solder_H907_adc         0x2000'0836    0x2  Data  Gb  const_var.o [1]
+Solder_H907_adc         0x2000'082e    0x2  Data  Gb  const_var.o [1]
 Solder_Thermocouple_adc
-                        0x2000'0830    0x2  Data  Gb  const_var.o [1]
+                        0x2000'0828    0x2  Data  Gb  const_var.o [1]
 Solder_Thermocouple_temp
-                        0x2000'0838    0x2  Data  Gb  const_var.o [1]
-Solder_filter_array     0x2000'075c   0x18  Data  Gb  const_var.o [1]
-Solder_off_btn          0x2000'07b0   0x10  Data  Gb  const_var.o [1]
-Solder_temp_z           0x2000'0826    0x2  Data  Gb  const_var.o [1]
-Solder_temp_z_former    0x2000'0828    0x2  Data  Gb  const_var.o [1]
+                        0x2000'0830    0x2  Data  Gb  const_var.o [1]
+Solder_filter_array     0x2000'075c   0x14  Data  Gb  const_var.o [1]
+Solder_off_btn          0x2000'07a8   0x10  Data  Gb  const_var.o [1]
+Solder_temp_z           0x2000'081e    0x2  Data  Gb  const_var.o [1]
+Solder_temp_z_former    0x2000'0820    0x2  Data  Gb  const_var.o [1]
 SysTick_Config           0x800'2b67   0x30  Code  Lc  stm32f1xx_hal_cortex.o [1]
 SysTick_Handler          0x800'b9a1    0x8  Code  Gb  stm32f1xx_it.o [1]
 SystemClock_Config       0x800'3e59   0x96  Code  Gb  main.o [1]
@@ -812,19 +812,19 @@ TIM_TI1_ConfigInputStage
 TIM_TI2_ConfigInputStage
                          0x800'6ab1   0x26  Code  Lc  stm32f1xx_hal_tim.o [1]
 Temp_z_default           0x800'4f7e    0x2  Data  Gb  const_var.o [1]
-TimeoutTime             0x2000'0824    0x2  Data  Gb  const_var.o [1]
+TimeoutTime             0x2000'081c    0x2  Data  Gb  const_var.o [1]
 Timeout_time_default     0x800'4f52    0x2  Data  Gb  const_var.o [1]
-U_fan_temp              0x2000'07e4    0x4  Data  Gb  const_var.o [1]
-U_fan_temp_z            0x2000'07e8    0x4  Data  Gb  const_var.o [1]
-U_solder_temp           0x2000'07d0    0x4  Data  Gb  const_var.o [1]
-U_solder_temp_z         0x2000'07d4    0x4  Data  Gb  const_var.o [1]
+U_fan_temp              0x2000'07dc    0x4  Data  Gb  const_var.o [1]
+U_fan_temp_z            0x2000'07e0    0x4  Data  Gb  const_var.o [1]
+U_solder_temp           0x2000'07c8    0x4  Data  Gb  const_var.o [1]
+U_solder_temp_z         0x2000'07cc    0x4  Data  Gb  const_var.o [1]
 UsageFault_Handler       0x800'b999    0x2  Code  Gb  stm32f1xx_it.o [1]
-Uy_fan                  0x2000'07f4    0x4  Data  Gb  const_var.o [1]
-Uy_fan_i                0x2000'07f0    0x4  Data  Gb  const_var.o [1]
-Uy_fan_p                0x2000'07ec    0x4  Data  Gb  const_var.o [1]
-Uy_solder               0x2000'07e0    0x4  Data  Gb  const_var.o [1]
-Uy_solder_i             0x2000'07dc    0x4  Data  Gb  const_var.o [1]
-Uy_solder_p             0x2000'07d8    0x4  Data  Gb  const_var.o [1]
+Uy_fan                  0x2000'07ec    0x4  Data  Gb  const_var.o [1]
+Uy_fan_i                0x2000'07e8    0x4  Data  Gb  const_var.o [1]
+Uy_fan_p                0x2000'07e4    0x4  Data  Gb  const_var.o [1]
+Uy_solder               0x2000'07d8    0x4  Data  Gb  const_var.o [1]
+Uy_solder_i             0x2000'07d4    0x4  Data  Gb  const_var.o [1]
+Uy_solder_p             0x2000'07d0    0x4  Data  Gb  const_var.o [1]
 _Encoding_8859_1_Mbrlen
                          0x800'2dad    0x2  Code  Gb  xencoding_8859_1.o [2]
 _Encoding_8859_1_Wctomb
@@ -908,17 +908,17 @@ amperzand_24ptBitmaps    0x800'b204  0x254  Data  Gb  ssd1306_fonts.o [1]
 amperzand_24ptDescriptors
                          0x800'b9f8   0x40  Data  Gb  ssd1306_fonts.o [1]
 amperzand_24ptFontInfo  0x2000'0028    0xc  Data  Gb  ssd1306_fonts.o [1]
-b_fan                   0x2000'07cc    0x4  Data  Gb  const_var.o [1]
+b_fan                   0x2000'07c4    0x4  Data  Gb  const_var.o [1]
 b_fan_default            0x800'bfa0    0x4  Data  Gb  const_var.o [1]
-b_solder                0x2000'07c4    0x4  Data  Gb  const_var.o [1]
+b_solder                0x2000'07bc    0x4  Data  Gb  const_var.o [1]
 b_solder_H907_default    0x800'bf98    0x4  Data  Gb  const_var.o [1]
 b_solder_T12_default     0x800'bf90    0x4  Data  Gb  const_var.o [1]
 blower_fan_manage        0x800'3271   0xd6  Code  Gb  main.o [1]
 blower_fan_manage::F_blower_block
-                        0x2000'0857    0x1  Data  Lc  main.o [1]
+                        0x2000'084f    0x1  Data  Lc  main.o [1]
 delay                    0x800'3741   0x10  Code  Gb  main.o [1]
 dispMenu                 0x800'7afd   0x6a  Code  Gb  menu.o [1]
-enc_value_previous      0x2000'082e    0x2  Data  Gb  const_var.o [1]
+enc_value_previous      0x2000'0826    0x2  Data  Gb  const_var.o [1]
 exit                     0x800'bcff    0x4  Code  Gb  exit.o [2]
 fan_working_layout       0x800'2db9   0x6c  Code  Gb  main.o [1]
 fmaxf                    0x800'54ad         Code  Gb  fmaxf.o [3]
@@ -929,9 +929,9 @@ getADC_values            0x800'2ec5  0x1c6  Code  Gb  main.o [1]
 getButtonState           0x800'5a0b   0xd8  Code  Gb  button_drv.o [1]
 getDiscreteInputs        0x800'31e3   0x8e  Code  Gb  main.o [1]
 getDiscreteInputs::F_fan_gerkon_cnt
-                        0x2000'0855    0x1  Data  Lc  main.o [1]
+                        0x2000'084d    0x1  Data  Lc  main.o [1]
 getDiscreteInputs::F_solder_switch_tmp_previous
-                        0x2000'0856    0x1  Data  Lc  main.o [1]
+                        0x2000'084e    0x1  Data  Lc  main.o [1]
 getN_Solder_tip          0x800'704d   0xda  Code  Lc  menu.o [1]
 hadc1                   0x2000'06fc   0x30  Data  Gb  main.o [1]
 hadc2                   0x2000'072c   0x30  Data  Gb  main.o [1]
@@ -942,9 +942,9 @@ hspi2                   0x2000'04c0   0x58  Data  Gb  main.o [1]
 htim1                   0x2000'056c   0x48  Data  Gb  main.o [1]
 htim2                   0x2000'05b4   0x48  Data  Gb  main.o [1]
 htim3                   0x2000'05fc   0x48  Data  Gb  main.o [1]
-k_fan                   0x2000'07c8    0x4  Data  Gb  const_var.o [1]
+k_fan                   0x2000'07c0    0x4  Data  Gb  const_var.o [1]
 k_fan_default            0x800'bf9c    0x4  Data  Gb  const_var.o [1]
-k_solder                0x2000'07c0    0x4  Data  Gb  const_var.o [1]
+k_solder                0x2000'07b8    0x4  Data  Gb  const_var.o [1]
 k_solder_H907_default    0x800'bf94    0x4  Data  Gb  const_var.o [1]
 k_solder_T12_default     0x800'bf8c    0x4  Data  Gb  const_var.o [1]
 ldexp                    0x800'9b85         Code  Gb  ldexp.o [3]
@@ -955,9 +955,9 @@ mSGothic_12ptDescriptors
                          0x800'b5d0  0x178  Data  Gb  ssd1306_fonts.o [1]
 mSGothic_12ptFontInfo   0x2000'0010    0xc  Data  Gb  ssd1306_fonts.o [1]
 main                     0x800'3751  0x6da  Code  Gb  main.o [1]
-main::Fcntr             0x2000'0858    0x1  Data  Lc  main.o [1]
-main::cnt_filter        0x2000'0859    0x1  Data  Lc  main.o [1]
-main::cntr              0x2000'0840    0x2  Data  Lc  main.o [1]
+main::Fcntr             0x2000'0850    0x1  Data  Lc  main.o [1]
+main::cnt_filter        0x2000'0851    0x1  Data  Lc  main.o [1]
+main::cntr              0x2000'0838    0x2  Data  Lc  main.o [1]
 memchr                   0x800'9a5d         Code  Gb  memchr.o [4]
 memset                   0x800'27f9   0x14  Code  Gb  memset.o [4]
 menuText                 0x800'7a8d   0x60  Code  Gb  menu.o [1]
@@ -967,8 +967,8 @@ palatinoLinotype_12ptDescriptors
                          0x800'b458  0x178  Data  Gb  ssd1306_fonts.o [1]
 palatinoLinotype_12ptFontInfo
                         0x2000'0004    0xc  Data  Gb  ssd1306_fonts.o [1]
-prog_state_previous     0x2000'0843    0x1  Data  Gb  const_var.o [1]
-progstate               0x2000'0842    0x1  Data  Gb  const_var.o [1]
+prog_state_previous     0x2000'083b    0x1  Data  Gb  const_var.o [1]
+progstate               0x2000'083a    0x1  Data  Gb  const_var.o [1]
 regulator_fan            0x800'3137   0xac  Code  Gb  main.o [1]
 regulator_solder         0x800'308b   0xac  Code  Gb  main.o [1]
 sEE_ReadBuffer           0x800'5b5d   0x70  Code  Gb  sEEPROM.o [1]
@@ -981,19 +981,19 @@ scalblnl                 0x800'9b85         Code  Gb  ldexp.o [3]
 scalbn                   0x800'9b85         Code  Gb  ldexp.o [3]
 scalbnl                  0x800'9b85         Code  Gb  ldexp.o [3]
 scale                    0x800'98a5   0x46  Code  Lc  xprintffull.o [2]
-sec_hand                0x2000'0820    0x4  Data  Lc  xfail_s.o [2]
+sec_hand                0x2000'0818    0x4  Data  Lc  xfail_s.o [2]
 segoeUI_8ptBitmaps       0x800'ae30  0x3d4  Data  Gb  ssd1306_fonts.o [1]
 segoeUI_8ptDescriptors   0x800'b748  0x178  Data  Gb  ssd1306_fonts.o [1]
 segoeUI_8ptFontInfo     0x2000'001c    0xc  Data  Gb  ssd1306_fonts.o [1]
 show_menu                0x800'79eb   0x92  Code  Gb  menu.o [1]
 solder_working_layout    0x800'2e25   0x9c  Code  Gb  main.o [1]
-soldertype              0x2000'0844    0x1  Data  Gb  const_var.o [1]
+soldertype              0x2000'083c    0x1  Data  Gb  const_var.o [1]
 ssd1306_SendToDisplay    0x800'4633   0x5a  Code  Lc  ssd1306.o [1]
 strNULL                  0x800'6b13    0x1  Data  Gb  const_var.o [1]
 strchr                   0x800'99cd         Code  Gb  strchr.o [4]
 strlen                   0x800'9a25         Code  Gb  strlen.o [4]
 tp                       0x800'bfb4    0x4  Data  Gb  const_var.o [1]
-uwTick                  0x2000'081c    0x4  Data  Gb  stm32f1xx_hal.o [1]
+uwTick                  0x2000'0814    0x4  Data  Gb  stm32f1xx_hal.o [1]
 uwTickFreq              0x2000'00bf    0x1  Data  Gb  stm32f1xx_hal.o [1]
 uwTickPrio              0x2000'0034    0x4  Data  Gb  stm32f1xx_hal.o [1]
 vsprintf                 0x800'86e9   0x34  Code  Gb  vsprintf.o [2]
@@ -1007,7 +1007,7 @@ vsprintf                 0x800'86e9   0x34  Code  Gb  vsprintf.o [2]
 
   41'783 bytes of readonly  code memory
    7'558 bytes of readonly  data memory
-   3'162 bytes of readwrite data memory
+   3'154 bytes of readwrite data memory
 
 Errors: none
 Warnings: none
