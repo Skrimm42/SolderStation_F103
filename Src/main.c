@@ -196,6 +196,12 @@ void regulator_solder(void)
   Uy_solder = Uy_solder_p * K1 + Uy_solder_i;
   Uy_solder = fminf(Uy_solder, 1.25);
   Uy_solder = fmaxf(Uy_solder, 0.12);
+  
+  //---Preheat H907 handle. When cold there is low resistance of the solder heater.
+  if((soldertype == HAKKO_907) && (U_solder_temp <= 0.1))
+  {
+    Uy_solder = fmaxf(Uy_solder, Solder_H907_PWM_limit);//100 degree 
+  }
 }
 
 
@@ -443,6 +449,7 @@ int main(void)
   
   Button_Init(&EncBtn, GPIOB, GPIO_PIN_6);
   Button_Init(&Solder_off_btn, GPIOC, GPIO_PIN_14);  
+  Button_Init(&Fan_off_btn, GPIOC, GPIO_PIN_15);
   
   HAL_Delay(200);
   
@@ -452,7 +459,7 @@ int main(void)
   sEE_ReadBuffer(&hspi2, (uint8_t*)&ID_read, EE_ID_ADDR, 8);//Was error here, have to read 2 times
   
   //Erase EE_ID so eeprom will fill with default values. Kind of hard reset.
-  //To reset need to push Switch Off Solder Button during turn on solder station.
+  //To hard reset, press the Switch-Off Solder Button while turning the station on
   if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_14) == GPIO_PIN_RESET)
   {
     HAL_Delay(1000);
@@ -494,6 +501,10 @@ int main(void)
     sEE_WriteBuffer(&hspi2, (uint8_t*)&soldertype, EE_SOLDER_TYPE_ADDR, 1);
     //Number of current solder tip
     sEE_WriteBuffer(&hspi2, (uint8_t*)&N_tip_default, EE_TIP_N_ADDR, 1);
+    //Fan switch-off source (front pannel button or handle gercon)
+    sEE_WriteBuffer(&hspi2, (uint8_t*)&fan_switch_off_source, EE_FAN_SWOFF_ADDR, 1);
+    //Solder H907 handle preheat PWM limit
+    sEE_WriteBuffer(&hspi2, (uint8_t*)&Solder_H907_PWM_limit, EE_SOLDER_PWM_LIMIT_ADDR, 4);
     //ID
     ID_read = ID_EE;
     sEE_WriteBuffer(&hspi2, (uint8_t*)&ID_read, EE_ID_ADDR, 4);

@@ -2,10 +2,11 @@
 
 #include "const_var.h"
 
-ButtonStateTypeDef EncBtn, Solder_off_btn;
+ButtonStateTypeDef EncBtn, Solder_off_btn, Fan_off_btn;
 
 ProgState progstate = SOLDER_E, prog_state_previous = SOLDER_E;
 SolderType soldertype = T_12;
+FanSwitchOffType fan_switch_off_source = GERCON;
 
 const float k_solder_T12_default = 0.131541, b_solder_T12_default = -42.93635,
             k_solder_H907_default = 0.11931, b_solder_H907_default = -9.9862,
@@ -46,4 +47,5 @@ uint8_t Kp_Solder = 20;
 
 bool K_blower_flush = 1, K_blower_off = 1;
     
+float Solder_H907_PWM_limit;
     
