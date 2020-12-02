@@ -193,15 +193,16 @@ void regulator_solder(void)
   Uy_solder_i = fminf(Uy_solder_i, 1);
   Uy_solder_i = fmaxf(Uy_solder_i, 0);
   
-  Uy_solder = Uy_solder_p * K1 + Uy_solder_i;
-  Uy_solder = fminf(Uy_solder, 1.25);
-  Uy_solder = fmaxf(Uy_solder, 0.12);
+  Uy_solder = Uy_solder_p * (K1_h907 * (bool)soldertype + K1_t12 * !(bool)soldertype) + Uy_solder_i;
   
   //---Preheat H907 handle. When cold there is low resistance of the solder heater.
-  if((soldertype == HAKKO_907) && (U_solder_temp <= 0.1))
+  if((soldertype == HAKKO_907) && (U_solder_temp <= 0.25))
   {
     Uy_solder = fmaxf(Uy_solder, Solder_H907_PWM_limit);//100 degree 
   }
+  
+  Uy_solder = fminf(Uy_solder, 1.25);
+  Uy_solder = fmaxf(Uy_solder, 0.12);
 }
 
 
@@ -237,6 +238,17 @@ void getDiscreteInputs(void)
   }
   else F_fan_gerkon = 0;
   
+  //----Fan switch off button-----------------------------------------------
+      if(fan_switch_off_source == BUTTON)
+      {
+        if(Fan_off_btn.ShortPush) 
+        {
+          F_fan_btn_off = !F_fan_btn_off;
+        }
+        //
+        F_fan_gerkon = F_fan_btn_off;
+      }
+  
   //  Vibration switch. Only changing of this signal is take into account.
   // Need for solder timeout
   if(soldertype == HAKKO_907) F_solder_switch = 0; //Turn off vibroswitch feature for Hakko 907 handle
@@ -246,7 +258,6 @@ void getDiscreteInputs(void)
     F_solder_switch = !(F_solder_switch_tmp ^ F_solder_switch_tmp_previous);
     F_solder_switch_tmp_previous = F_solder_switch_tmp;
   }
-  
 }
 
 void blower_fan_manage(void)
@@ -295,6 +306,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_ADC_Start(&hadc1);
     getButtonState(&EncBtn);
     getButtonState(&Solder_off_btn);
+    getButtonState(&Fan_off_btn);
     
     if(EncBtn.LongPush) BtnCntr_LongPush = 1;
     if(EncBtn.ShortPush) BtnCntr_ShortPush = 1;
@@ -338,6 +350,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     }
     if(progstate == FAN_E)
     {
+      //---Fan switch off button management in getDiscreteInputs() 
       Fan_temp_z = (uint16_t)(counter / 2);
       if(Fan_temp_z <= FAN_MIN_TEMP_Z)//Switch off the fan with encoder
       {
@@ -504,7 +517,7 @@ int main(void)
     //Fan switch-off source (front pannel button or handle gercon)
     sEE_WriteBuffer(&hspi2, (uint8_t*)&fan_switch_off_source, EE_FAN_SWOFF_ADDR, 1);
     //Solder H907 handle preheat PWM limit
-    sEE_WriteBuffer(&hspi2, (uint8_t*)&Solder_H907_PWM_limit, EE_SOLDER_PWM_LIMIT_ADDR, 4);
+    sEE_WriteBuffer(&hspi2, (uint8_t*)&Solder_H907_PWM_limit_default, EE_SOLDER_PWM_LIMIT_ADDR, 4);
     //ID
     ID_read = ID_EE;
     sEE_WriteBuffer(&hspi2, (uint8_t*)&ID_read, EE_ID_ADDR, 4);
@@ -537,6 +550,9 @@ int main(void)
   
   sEE_ReadBuffer(&hspi2, (uint8_t*)&k_fan, EE_CAL_COEFF_FAN_ADDR, 4);
   sEE_ReadBuffer(&hspi2, (uint8_t*)&b_fan, EE_CAL_COEFF_FAN_ADDR + 4, 4);
+  
+  sEE_ReadBuffer(&hspi2, (uint8_t*)&Solder_H907_PWM_limit, EE_SOLDER_PWM_LIMIT_ADDR, 4);
+  sEE_ReadBuffer(&hspi2, (uint8_t*)&fan_switch_off_source, EE_FAN_SWOFF_ADDR, 1);
   
   Solder_temp_z_former = Solder_temp_z;
   Fan_temp_z_former = Fan_temp_z;

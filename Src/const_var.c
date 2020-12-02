@@ -14,7 +14,7 @@ const float k_solder_T12_default = 0.131541, b_solder_T12_default = -42.93635,
 const uint8_t N_tip_default = 1;
 const uint16_t Timeout_time_default = 180, Temp_z_default = 220;
 const uint32_t ID = ID_EE;
-
+const float Solder_H907_PWM_limit_default = 0.9;
 uint16_t adc_buffer[24];
 
 uint16_t TimeoutTime;
@@ -29,12 +29,12 @@ uint16_t Solder_Thermocouple_adc, Fan_Thermocouple_adc, Fan_fan_adc, Solder_H907
 int16_t Solder_Thermocouple_temp, Fan_Thermocouple_temp;
 float U_solder_temp, U_solder_temp_z, Uy_solder_p, Uy_solder_i, Uy_solder;
 float U_fan_temp, U_fan_temp_z, Uy_fan_p, Uy_fan_i, Uy_fan;
-const float K1 = 10, K2 = 15, T1 = 0.3, T2 = 0.3, tp = 0.01; 
+const float K1_h907 = 12, K1_t12 = 5, K2 = 15, T1 = 0.3, T2 = 0.3, tp = 0.01; 
 
 
 bool F_solder, F_solder_switch, F_solder_timeout = 1, F_solder_enable, F_fan, 
      F_fan_enable, F_fan_gerkon, F_fan_temp_protect, F_solder_temp_protect, 
-     F_fan_blower_protect, F_encoder_change_value, F_solder_btn_off;
+     F_fan_blower_protect, F_encoder_change_value, F_solder_btn_off, F_fan_btn_off;
 bool BtnCntr_ShortPush, BtnCntr_LongPush, BtnCntr_Menu;
 
 int16_t Solder_filter_array[T_FILTER_N];
