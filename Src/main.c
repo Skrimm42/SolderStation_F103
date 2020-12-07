@@ -488,6 +488,22 @@ int main(void)
     }
   }
   
+  
+  //Backup memory
+  //Press Encoder Button while turn on the station
+   if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_6) == GPIO_PIN_SET)
+  {
+    HAL_Delay(1000);
+    if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_6) == GPIO_PIN_SET)
+    {
+      uint8_t backup_arr[250];
+      sEE_ReadBuffer(&hspi2, backup_arr,EE_ID_ADDR, 250);
+      sEE_WriteBuffer(&hspi2, backup_arr,EE_ID_ADDR + 0x0100, 250);
+      SSD1306_Puts("EEPROM backup sucsess.", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+      HAL_Delay(3000);
+    }
+  }
+  
   if(ID_read != ID_EE)
   {
     //k and b scaling coeffs for solder tips T12 and Hakko907

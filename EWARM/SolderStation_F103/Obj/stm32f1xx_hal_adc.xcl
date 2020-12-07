@@ -1,55 +1,55 @@
-"D:\ARM_PROJECTS\STM32F103_Projects\CUBE\SolderStation_Git\SolderStation_F103\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_adc.c"
+"D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_adc.c"
 -std=c11
 -ferror-limit=0
 -fbracket-depth=512
 -funsigned-char
 -MD
 -MF
-D:\ARM_PROJECTS\STM32F103_Projects\CUBE\SolderStation_Git\SolderStation_F103\EWARM\SolderStation_F103\Obj\stm32f1xx_hal_adc.pbi.dep
+D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\EWARM\SolderStation_F103\Obj\stm32f1xx_hal_adc.pbi.dep
 -o
 stm32f1xx_hal_adc.pbi
 -I
-D:\ARM_PROJECTS\STM32F103_Projects\CUBE\SolderStation_Git\SolderStation_F103\Drivers\STM32F1xx_HAL_Driver\Src
+D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\Drivers\STM32F1xx_HAL_Driver\Src
 -I
-D:\ARM_PROJECTS\STM32F103_Projects\CUBE\SolderStation_Git\SolderStation_F103\EWARM/../Inc\
+D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\EWARM/../Inc\
 -I
-D:\ARM_PROJECTS\STM32F103_Projects\CUBE\SolderStation_Git\SolderStation_F103\EWARM/../Drivers/STM32F1xx_HAL_Driver/Inc\
+D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\EWARM/../Drivers/STM32F1xx_HAL_Driver/Inc\
 -I
-D:\ARM_PROJECTS\STM32F103_Projects\CUBE\SolderStation_Git\SolderStation_F103\EWARM/../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy\
+D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\EWARM/../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy\
 -I
-D:\ARM_PROJECTS\STM32F103_Projects\CUBE\SolderStation_Git\SolderStation_F103\EWARM/../Drivers/CMSIS/Device/ST/STM32F1xx/Include\
+D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\EWARM/../Drivers/CMSIS/Device/ST/STM32F1xx/Include\
 -I
-D:\ARM_PROJECTS\STM32F103_Projects\CUBE\SolderStation_Git\SolderStation_F103\EWARM/../Drivers/CMSIS/Include\
+D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\EWARM/../Drivers/CMSIS/Include\
 -I
-D:\ARM_PROJECTS\STM32F103_Projects\CUBE\SolderStation_Git\SolderStation_F103\EWARM/../Drivers/micromenu-2/inc\
+D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\EWARM/../Drivers/micromenu-2/inc\
 -I
-D:\ARM_PROJECTS\STM32F103_Projects\CUBE\SolderStation_Git\SolderStation_F103\EWARM/../Drivers/sEEPROM/inc\
+D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\EWARM/../Drivers/sEEPROM/inc\
 -I
-D:\ARM_PROJECTS\STM32F103_Projects\CUBE\SolderStation_Git\SolderStation_F103\EWARM/../Drivers/SSD1306_HAL_EN_RU-master/inc\
+D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\EWARM/../Drivers/SSD1306_HAL_EN_RU-master/inc\
 -I
-D:\ARM_PROJECTS\STM32F103_Projects\CUBE\SolderStation_Git\SolderStation_F103\EWARM/../Drivers/Buttons_drv/inc\
+D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\EWARM/../Drivers/Buttons_drv/inc\
 -I
-C:\Program Files\IAR Systems\Embedded Workbench 8.4\arm\inc
+C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.4\arm\inc
 -I
-C:\Program Files\IAR Systems\Embedded Workbench 8.4\arm\inc\c
+C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.4\arm\inc\c
 -I
-D:\ARM_PROJECTS\STM32F103_Projects\CUBE\SolderStation_Git\SolderStation_F103\Inc
+D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\Inc
 -I
-D:\ARM_PROJECTS\STM32F103_Projects\CUBE\SolderStation_Git\SolderStation_F103\Drivers\STM32F1xx_HAL_Driver\Inc
+D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\Drivers\STM32F1xx_HAL_Driver\Inc
 -I
-D:\ARM_PROJECTS\STM32F103_Projects\CUBE\SolderStation_Git\SolderStation_F103\Drivers\STM32F1xx_HAL_Driver\Inc\Legacy
+D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\Drivers\STM32F1xx_HAL_Driver\Inc\Legacy
 -I
-D:\ARM_PROJECTS\STM32F103_Projects\CUBE\SolderStation_Git\SolderStation_F103\Drivers\CMSIS\Device\ST\STM32F1xx\Include
+D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\Drivers\CMSIS\Device\ST\STM32F1xx\Include
 -I
-D:\ARM_PROJECTS\STM32F103_Projects\CUBE\SolderStation_Git\SolderStation_F103\Drivers\CMSIS\Include
+D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\Drivers\CMSIS\Include
 -I
-D:\ARM_PROJECTS\STM32F103_Projects\CUBE\SolderStation_Git\SolderStation_F103\Drivers\micromenu-2\inc
+D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\Drivers\micromenu-2\inc
 -I
-D:\ARM_PROJECTS\STM32F103_Projects\CUBE\SolderStation_Git\SolderStation_F103\Drivers\sEEPROM\inc
+D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\Drivers\sEEPROM\inc
 -I
-D:\ARM_PROJECTS\STM32F103_Projects\CUBE\SolderStation_Git\SolderStation_F103\Drivers\SSD1306_HAL_EN_RU-master\inc
+D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\Drivers\SSD1306_HAL_EN_RU-master\inc
 -I
-D:\ARM_PROJECTS\STM32F103_Projects\CUBE\SolderStation_Git\SolderStation_F103\Drivers\Buttons_drv\inc
+D:\WORK\ST\STM32F013C8T6B_BluePill\Projects\CUBE\SolderStation_F103\Drivers\Buttons_drv\inc
 -D__CHAR_BITS__=8
 -D__CHAR_MAX__=0xff
 -D__CHAR_MIN__=0
@@ -327,8 +327,8 @@ D:\ARM_PROJECTS\STM32F103_Projects\CUBE\SolderStation_Git\SolderStation_F103\Dri
 -D__EDG_INT128_EXTENSIONS_ALLOWED=0
 -DUSE_HAL_DRIVER=1
 -DSTM32F103xB=1
--D_DLIB_CONFIG_FILE_HEADER_NAME="C:\Program Files\IAR Systems\Embedded Workbench 8.4\arm\inc\c\DLib_Config_Full.h"
--D_DLIB_CONFIG_FILE_STRING="C:\\Program Files\\IAR Systems\\Embedded Workbench 8.4\\arm\\inc\\c\\DLib_Config_Full.h"
+-D_DLIB_CONFIG_FILE_HEADER_NAME="C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.4\arm\inc\c\DLib_Config_Full.h"
+-D_DLIB_CONFIG_FILE_STRING="C:\\Program Files (x86)\\IAR Systems\\Embedded Workbench 8.4\\arm\\inc\\c\\DLib_Config_Full.h"
 -D__VERSION__="IAR ANSI C/C++ Compiler V8.50.6.265/W32 for ARM"
 -D_VA_DEFINED=
 -D_VA_LIST=struct __va_list
