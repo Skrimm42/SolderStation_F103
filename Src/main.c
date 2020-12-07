@@ -25,6 +25,9 @@
 //FAN fan             - PA.2 Ch.2
 //Solder Thermocouple - PA.3 Ch.3
 //Spare channel       - PA.4. Ch.4
+
+//Push buttons unpressed state = High level
+
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -224,30 +227,32 @@ void regulator_fan(void)
 //Get state of the fan handle gerkon and solder handle vibration switch
 void getDiscreteInputs(void)
 {
-  bool F_fan_gerkon_tmp, F_solder_switch_tmp;
+  bool F_fan_gerkon_tmp, F_solder_switch_tmp, F_fan_gerkon_gpio;
   static uint8_t F_fan_gerkon_cnt;
   static bool F_solder_switch_tmp_previous;
   
-  //Gerkon with bounce protection
+  //Gerkon with bounce protection 
   F_fan_gerkon_tmp = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_10);
   F_fan_gerkon_cnt = (F_fan_gerkon_cnt + 1) * F_fan_gerkon_tmp;
   if(F_fan_gerkon_cnt >= DEBOUNCE)
   {
     F_fan_gerkon_cnt = DEBOUNCE;
-    F_fan_gerkon = 1;
+    F_fan_gerkon_gpio = 1;
   }
-  else F_fan_gerkon = 0;
+  else F_fan_gerkon_gpio = 0;
   
   //----Fan switch off button-----------------------------------------------
-      if(fan_switch_off_source == BUTTON)
-      {
-        if(Fan_off_btn.ShortPush) 
-        {
-          F_fan_btn_off = !F_fan_btn_off;
-        }
-        //
-        F_fan_gerkon = F_fan_btn_off;
-      }
+  if(Fan_off_btn.ShortPush) 
+  {
+    F_fan_btn_off = !F_fan_btn_off;
+  }
+  
+  if(fan_switch_off_source == BUTTON)
+  {
+    // Костыль, тк везде по коду берется переменная F_fan_gerkon, а F_fan_btn_off добавлена позднее, 
+    // то результирующий сигнал выключения фена с кнопки или с геркона сводится к переменной F_fan_gerkon
+    F_fan_gerkon = F_fan_gerkon_gpio & F_fan_btn_off; // Если управление феном установлено с кнопки, нажатие кнопки разрешает работу геркона, повторное нажатие делает переменную F_fan_gerkon = 0, т.е. работа фена запрещена.
+  }
   
   //  Vibration switch. Only changing of this signal is take into account.
   // Need for solder timeout
@@ -475,7 +480,18 @@ int main(void)
   //To hard reset, press the Switch-Off Solder Button while turning the station on
   if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_14) == GPIO_PIN_RESET)
   {
-    HAL_Delay(1000);
+    SSD1306_DrawFilledRectangle(0, 17, 127, 46, SSD1306_COLOR_BLACK);
+    SSD1306_GotoXY(1, 17);
+    SSD1306_Puts("Set default values.", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+    SSD1306_UpdateScreen();
+    
+    uint8_t delaytimer = 60;
+    do
+    {
+      delaytimer--;
+      HAL_Delay(50);
+    }while((HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_14) == GPIO_PIN_RESET) && (delaytimer != 1)); //delay approx. 3s while holding the Solder button
+    
     if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_14) == GPIO_PIN_RESET)
     {
       ID_read = 0;
@@ -488,21 +504,8 @@ int main(void)
     }
   }
   
-  
-  //Backup memory
-  //Press Encoder Button while turn on the station
-   if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_6) == GPIO_PIN_SET)
-  {
-    HAL_Delay(1000);
-    if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_6) == GPIO_PIN_SET)
-    {
-      uint8_t backup_arr[250];
-      sEE_ReadBuffer(&hspi2, backup_arr,EE_ID_ADDR, 250);
-      sEE_WriteBuffer(&hspi2, backup_arr,EE_ID_ADDR + 0x0100, 250);
-      SSD1306_Puts("EEPROM backup sucsess.", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
-      HAL_Delay(3000);
-    }
-  }
+  SSD1306_Fill(SSD1306_COLOR_BLACK);
+  SSD1306_UpdateScreen();
   
   if(ID_read != ID_EE)
   {
@@ -538,6 +541,7 @@ int main(void)
     ID_read = ID_EE;
     sEE_WriteBuffer(&hspi2, (uint8_t*)&ID_read, EE_ID_ADDR, 4);
     
+    SSD1306_GotoXY(1, 17);
     SSD1306_Puts("Initial settings done.", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
     SSD1306_UpdateScreen(); 
     HAL_Delay(2000);

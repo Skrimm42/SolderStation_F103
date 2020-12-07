@@ -31,19 +31,22 @@ char* menuText(int8_t menuShift);
 
 static void Fan_switch_off_source(void);
 static void Solder_H907_PWM_lim(void);
+static void MemBackupEEPROM(void);//Backup memory
+static void MemRestoreEEPROM(void);//Restore memory
 
 // Menus  Name | Next | Prev | Parent | Child | SelectFunction | EnterFunction | Text
-MENU_ITEM(Menu_1, Menu_2, Menu_6, NULL_MENU, Menu_1_1, NULL, NULL, "1. Calibrate");
-MENU_ITEM(Menu_2, Menu_3, Menu_1, NULL_MENU, Menu_2_1, NULL, NULL,"2. Set Solder tip");
-MENU_ITEM(Menu_3, Menu_4, Menu_2, NULL_MENU, NULL_MENU, NULL, SetTimeout, "3. Set solder timeout");
-MENU_ITEM(Menu_4, Menu_5, Menu_3, NULL_MENU, Menu_4_1, NULL, NULL, "4. Reset");
+MENU_ITEM(Menu_1, Menu_2, Menu_6, NULL_MENU, Menu_1_1,  NULL, NULL,          "1. Calibrate");
+MENU_ITEM(Menu_2, Menu_3, Menu_1, NULL_MENU, Menu_2_1,  NULL, NULL,          "2. Set Solder tip");
+MENU_ITEM(Menu_3, Menu_4, Menu_2, NULL_MENU, NULL_MENU, NULL, SetTimeout,    "3. Set solder timeout");
+MENU_ITEM(Menu_4, Menu_5, Menu_3, NULL_MENU, Menu_4_1,  NULL, NULL,          "4. Reset");
 MENU_ITEM(Menu_5, Menu_6, Menu_4, NULL_MENU, NULL_MENU, NULL, SetSolderType, "5. Set solder type");
-MENU_ITEM(Menu_6, Menu_7, Menu_5, NULL_MENU, NULL_MENU, NULL, ExitMenu, "6. Exit");
-MENU_ITEM(Menu_7, Menu_1, Menu_6, NULL_MENU, Menu_7_1, NULL, NULL, "6. Options");
+MENU_ITEM(Menu_6, Menu_7, Menu_5, NULL_MENU, NULL_MENU, NULL, ExitMenu,      "6. Exit");
+MENU_ITEM(Menu_7, Menu_8, Menu_6, NULL_MENU, Menu_7_1,  NULL, NULL,          "7. Options");
+MENU_ITEM(Menu_8, Menu_1, Menu_7, NULL_MENU, Menu_8_1,  NULL, NULL,          "8. Mem backup restore");
 
 MENU_ITEM(Menu_1_1, Menu_1_2, Menu_1_3, Menu_1, NULL_MENU, NULL, Calibrate_solder, "Solder");
-MENU_ITEM(Menu_1_2, Menu_1_3, Menu_1_1, Menu_1, NULL_MENU, NULL, Calibrate_fan, "Fan");
-MENU_ITEM(Menu_1_3, Menu_1_1, Menu_1_2, Menu_1, NULL_MENU, NULL, GoBack, "Back");
+MENU_ITEM(Menu_1_2, Menu_1_3, Menu_1_1, Menu_1, NULL_MENU, NULL, Calibrate_fan,    "Fan");
+MENU_ITEM(Menu_1_3, Menu_1_1, Menu_1_2, Menu_1, NULL_MENU, NULL, GoBack,           "Back");
 
 
 MENU_ITEM(Menu_2_1, Menu_2_2, Menu_2_6, Menu_2, NULL_MENU, NULL, getN_Solder_tip, "Tip #1");
@@ -54,12 +57,46 @@ MENU_ITEM(Menu_2_5, Menu_2_6, Menu_2_4, Menu_2, NULL_MENU, NULL, getN_Solder_tip
 MENU_ITEM(Menu_2_6, Menu_2_1, Menu_2_5, Menu_2, NULL_MENU, NULL, GoBack, "Back");
 
 MENU_ITEM(Menu_4_1, Menu_4_2, Menu_4_3, NULL_MENU, NULL_MENU, NULL, Reset_solder, "Reset Solder");
-MENU_ITEM(Menu_4_2, Menu_4_3, Menu_4_1, NULL_MENU, NULL_MENU, NULL, Reset_fan, "Reset Fan");
-MENU_ITEM(Menu_4_3, Menu_4_1, Menu_4_2, Menu_4, NULL_MENU, NULL, GoBack, "Back");
+MENU_ITEM(Menu_4_2, Menu_4_3, Menu_4_1, NULL_MENU, NULL_MENU, NULL, Reset_fan,    "Reset Fan");
+MENU_ITEM(Menu_4_3, Menu_4_1, Menu_4_2, Menu_4,    NULL_MENU, NULL, GoBack,       "Back");
 
-MENU_ITEM(Menu_7_1, Menu_1_1, Menu_1_2, Menu_7, NULL_MENU, NULL, Fan_switch_off_source, "Fan switch off source");
-MENU_ITEM(Menu_7_2, Menu_1_1, Menu_1_2, Menu_7, NULL_MENU, NULL, Solder_H907_PWM_lim, "Solder PWM limit");
-MENU_ITEM(Menu_7_3, Menu_1_1, Menu_1_2, Menu_7, NULL_MENU, NULL, GoBack, "Back");
+MENU_ITEM(Menu_7_1, Menu_7_2, Menu_7_3, NULL_MENU, NULL_MENU, NULL, Fan_switch_off_source, "Fan switch off source");
+MENU_ITEM(Menu_7_2, Menu_7_3, Menu_7_1, NULL_MENU, NULL_MENU, NULL, Solder_H907_PWM_lim,   "Solder PWM limit");
+MENU_ITEM(Menu_7_3, Menu_7_1, Menu_7_2, Menu_7,    NULL_MENU, NULL, GoBack,                 "Back");
+
+MENU_ITEM(Menu_8_1, Menu_8_2, Menu_8_3, NULL_MENU, NULL_MENU, NULL, MemBackupEEPROM, "EEPROM backup");
+MENU_ITEM(Menu_8_2, Menu_8_3, Menu_8_1, NULL_MENU, NULL_MENU, NULL, MemRestoreEEPROM, "EEPROM restore");
+MENU_ITEM(Menu_8_3, Menu_8_1, Menu_8_2, Menu_8,    NULL_MENU, NULL, GoBack, "Back");
+
+static void MemBackupEEPROM(void)//Backup memory
+{
+  uint8_t backup_arr[250];
+  
+  SSD1306_DrawFilledRectangle(0, 17, 127, 46, SSD1306_COLOR_BLACK);
+  SSD1306_GotoXY(1, 17);
+  BtnCntr_Menu = 0;
+  sEE_ReadBuffer(&hspi2, backup_arr,EE_ID_ADDR, 250);
+  sEE_WriteBuffer(&hspi2, backup_arr,EE_ID_ADDR + 0x0100, 250);
+  SSD1306_Puts("EEPROM backup sucsess.", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  SSD1306_UpdateScreen();
+  HAL_Delay(3000);
+  
+}
+
+static void MemRestoreEEPROM(void)//Restore memory
+{
+  uint8_t restore_arr[250];
+  
+  SSD1306_DrawFilledRectangle(0, 17, 127, 46, SSD1306_COLOR_BLACK);
+  SSD1306_GotoXY(1, 17);
+  BtnCntr_Menu = 0;
+  sEE_ReadBuffer(&hspi2, restore_arr,EE_ID_ADDR + 0x0100, 250);
+  sEE_WriteBuffer(&hspi2, restore_arr,EE_ID_ADDR, 250);
+  SSD1306_Puts("EEPROM restore sucsess.", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  SSD1306_UpdateScreen();
+  HAL_Delay(3000);
+  
+}
 
 
 
@@ -68,7 +105,7 @@ static void Fan_switch_off_source(void)
   uint16_t tmparr;
   uint8_t counter_temp;
   FanSwitchOffType fan_switchoff_tmp;
-
+  
   
   BtnCntr_Menu = 0;
   tmparr = __HAL_TIM_GET_AUTORELOAD(&htim2);
