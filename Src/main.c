@@ -247,11 +247,19 @@ void getDiscreteInputs(void)
     F_fan_btn_off = !F_fan_btn_off;
   }
   
-  if(fan_switch_off_source == BUTTON)
+  if(fan_switch_off_source == BUTT_GERCON)
   {
     // Костыль, тк везде по коду берется переменная F_fan_gerkon, а F_fan_btn_off добавлена позднее, 
     // то результирующий сигнал выключения фена с кнопки или с геркона сводится к переменной F_fan_gerkon
     F_fan_gerkon = F_fan_gerkon_gpio & F_fan_btn_off; // Если управление феном установлено с кнопки, нажатие кнопки разрешает работу геркона, повторное нажатие делает переменную F_fan_gerkon = 0, т.е. работа фена запрещена.
+  }
+  else if(fan_switch_off_source == GERCON)
+  {
+     F_fan_gerkon = F_fan_gerkon_gpio;
+  }
+  else if(fan_switch_off_source == BUTTON)
+  {
+    F_fan_gerkon = F_fan_btn_off;
   }
   
   //  Vibration switch. Only changing of this signal is take into account.

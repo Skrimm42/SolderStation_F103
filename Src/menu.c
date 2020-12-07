@@ -35,7 +35,7 @@ static void MemBackupEEPROM(void);//Backup memory
 static void MemRestoreEEPROM(void);//Restore memory
 
 // Menus  Name | Next | Prev | Parent | Child | SelectFunction | EnterFunction | Text
-MENU_ITEM(Menu_1, Menu_2, Menu_6, NULL_MENU, Menu_1_1,  NULL, NULL,          "1. Calibrate");
+MENU_ITEM(Menu_1, Menu_2, Menu_8, NULL_MENU, Menu_1_1,  NULL, NULL,          "1. Calibrate");
 MENU_ITEM(Menu_2, Menu_3, Menu_1, NULL_MENU, Menu_2_1,  NULL, NULL,          "2. Set Solder tip");
 MENU_ITEM(Menu_3, Menu_4, Menu_2, NULL_MENU, NULL_MENU, NULL, SetTimeout,    "3. Set solder timeout");
 MENU_ITEM(Menu_4, Menu_5, Menu_3, NULL_MENU, Menu_4_1,  NULL, NULL,          "4. Reset");
@@ -61,7 +61,7 @@ MENU_ITEM(Menu_4_2, Menu_4_3, Menu_4_1, NULL_MENU, NULL_MENU, NULL, Reset_fan,  
 MENU_ITEM(Menu_4_3, Menu_4_1, Menu_4_2, Menu_4,    NULL_MENU, NULL, GoBack,       "Back");
 
 MENU_ITEM(Menu_7_1, Menu_7_2, Menu_7_3, NULL_MENU, NULL_MENU, NULL, Fan_switch_off_source, "Fan switch off source");
-MENU_ITEM(Menu_7_2, Menu_7_3, Menu_7_1, NULL_MENU, NULL_MENU, NULL, Solder_H907_PWM_lim,   "Solder PWM limit");
+MENU_ITEM(Menu_7_2, Menu_7_3, Menu_7_1, NULL_MENU, NULL_MENU, NULL, Solder_H907_PWM_lim,   "H-907 solder PWM limit");
 MENU_ITEM(Menu_7_3, Menu_7_1, Menu_7_2, Menu_7,    NULL_MENU, NULL, GoBack,                 "Back");
 
 MENU_ITEM(Menu_8_1, Menu_8_2, Menu_8_3, NULL_MENU, NULL_MENU, NULL, MemBackupEEPROM, "EEPROM backup");
@@ -75,8 +75,8 @@ static void MemBackupEEPROM(void)//Backup memory
   SSD1306_DrawFilledRectangle(0, 17, 127, 46, SSD1306_COLOR_BLACK);
   SSD1306_GotoXY(1, 17);
   BtnCntr_Menu = 0;
-  sEE_ReadBuffer(&hspi2, backup_arr,EE_ID_ADDR, 250);
-  sEE_WriteBuffer(&hspi2, backup_arr,EE_ID_ADDR + 0x0100, 250);
+  sEE_ReadBuffer(&hspi2, backup_arr, EE_ID_ADDR, 250);
+  sEE_WriteBuffer(&hspi2, backup_arr, EE_ID_ADDR + 0x0100, 250);
   SSD1306_Puts("EEPROM backup sucsess.", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
   SSD1306_UpdateScreen();
   HAL_Delay(3000);
@@ -90,8 +90,8 @@ static void MemRestoreEEPROM(void)//Restore memory
   SSD1306_DrawFilledRectangle(0, 17, 127, 46, SSD1306_COLOR_BLACK);
   SSD1306_GotoXY(1, 17);
   BtnCntr_Menu = 0;
-  sEE_ReadBuffer(&hspi2, restore_arr,EE_ID_ADDR + 0x0100, 250);
-  sEE_WriteBuffer(&hspi2, restore_arr,EE_ID_ADDR, 250);
+  sEE_ReadBuffer(&hspi2, restore_arr, EE_ID_ADDR + 0x0100, 250);
+  sEE_WriteBuffer(&hspi2, restore_arr, EE_ID_ADDR, 250);
   SSD1306_Puts("EEPROM restore sucsess.", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
   SSD1306_UpdateScreen();
   HAL_Delay(3000);
@@ -115,8 +115,8 @@ static void Fan_switch_off_source(void)
   SSD1306_Puts("Select fan switch off source:", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
   
   ENCODER_ROLLOVER
-  __HAL_TIM_SET_COUNTER(&htim2, 0);
-  __HAL_TIM_SET_AUTORELOAD(&htim2, 3);
+  __HAL_TIM_SET_COUNTER(&htim2, fan_switch_off_source * 2 + 1);
+  __HAL_TIM_SET_AUTORELOAD(&htim2, 5);
   while(!BtnCntr_Menu)
   {
     BtnCntr_Menu = 0;
@@ -128,10 +128,15 @@ static void Fan_switch_off_source(void)
       SSD1306_Puts("Gercon", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
       fan_switchoff_tmp = GERCON;
     }
-    else
+    else if(counter_temp == 1)
     {
       SSD1306_Puts("Button ", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
       fan_switchoff_tmp = BUTTON;
+    }
+    else
+    {
+      SSD1306_Puts("Button and Gercon", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+      fan_switchoff_tmp = BUTT_GERCON;
     }
     SSD1306_UpdateScreen();
     
@@ -154,9 +159,10 @@ static void Fan_switch_off_source(void)
   SSD1306_Puts("Fan switch off source is ", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
   SSD1306_GotoXY(1, 27);
   SSD1306_Puts("set to ", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
-  SSD1306_GotoXY(25, 27);
-  if(fan_switch_off_source == GERCON) SSD1306_Puts("Handle Gercon", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
-  else SSD1306_Puts("Front Pannel Button", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  SSD1306_GotoXY(1, 37);
+  if(fan_switch_off_source == GERCON)       SSD1306_Puts("Handle Gercon", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  else if (fan_switch_off_source == BUTTON) SSD1306_Puts("Front Pannel Button", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+  else                                      SSD1306_Puts("Button And Gercon", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
   SSD1306_UpdateScreen();
   __HAL_TIM_SET_AUTORELOAD(&htim2, tmparr);
   HAL_Delay(3000);
@@ -197,7 +203,7 @@ static void Solder_H907_PWM_lim(void)
     counter_temp = (__HAL_TIM_GET_COUNTER(&htim2)) / 2;
     SSD1306_DrawFilledRectangle(30, 27, 127, 27, SSD1306_COLOR_BLACK);
     SSD1306_GotoXY(30, 27);     
-    SSD1306_printf(&amperzand_24ptFontInfo, "%d", counter_temp);
+    SSD1306_printf(&amperzand_24ptFontInfo, "%d", 100 - counter_temp);
     SSD1306_UpdateScreen();
     if(BtnCntr_LongPush)//exit setting timeout without eeprom write
     {
@@ -217,7 +223,7 @@ static void Solder_H907_PWM_lim(void)
   SSD1306_GotoXY(1, 17);
   SSD1306_Puts( "PWM limit is set to", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
   SSD1306_GotoXY(15, 35);
-  SSD1306_printf(&segoeUI_8ptFontInfo, "%d s", Solder_H907_PWM_limit * 100);
+  SSD1306_printf(&segoeUI_8ptFontInfo, "%d percent", 100 - (int8_t)(Solder_H907_PWM_limit * 100));
   SSD1306_UpdateScreen();
   HAL_Delay(3000);
   

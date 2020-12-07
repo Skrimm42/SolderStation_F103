@@ -55,6 +55,7 @@ typedef enum
 {
   GERCON = 0,
   BUTTON = 1,
+  BUTT_GERCON = 2,
 }FanSwitchOffType;
 
 extern ButtonStateTypeDef EncBtn, Solder_off_btn, Fan_off_btn;
