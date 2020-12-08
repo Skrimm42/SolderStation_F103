@@ -30,6 +30,8 @@
 #define EE_BTNOFF_SOLDER_ADDR           0x00D0
 #define EE_SOLDER_TYPE_ADDR             0x00D1
 #define EE_CAL_COEFF_SOLDER_907_ADDR    0x00E0
+#define EE_FAN_SWOFF_ADDR               0x00F0
+#define EE_SOLDER_PWM_LIMIT_ADDR        0x00F1
 
 #define SOLDER_MIN_TEMP_Z 99
 #define FAN_MIN_TEMP_Z    99
@@ -49,16 +51,25 @@ typedef enum
   HAKKO_907 = 1,
 }SolderType;
 
+typedef enum  
+{
+  GERCON = 0,
+  BUTTON = 1,
+  BUTT_GERCON = 2,
+}FanSwitchOffType;
 
-extern ButtonStateTypeDef EncBtn, Solder_off_btn;
+extern ButtonStateTypeDef EncBtn, Solder_off_btn, Fan_off_btn;
 
 extern ProgState progstate, prog_state_previous;
 extern SolderType soldertype;
+extern FanSwitchOffType fan_switch_off_source;
+
 extern const float k_solder_T12_default, b_solder_T12_default, k_fan_default,
                    k_solder_H907_default, b_solder_H907_default, b_fan_default;
 extern const uint8_t N_tip_default;
 extern const uint16_t Timeout_time_default, Temp_z_default;
 extern const uint32_t ID;
+extern const float Solder_H907_PWM_limit_default;
 
 extern uint16_t adc_buffer[24];
 
@@ -74,13 +85,13 @@ extern uint16_t Solder_Thermocouple_adc, Fan_Thermocouple_adc, Fan_fan_adc, Sold
 extern int16_t Solder_Thermocouple_temp, Fan_Thermocouple_temp;
 extern float U_solder_temp, U_solder_temp_z, Uy_solder_p, Uy_solder_i, Uy_solder;
 extern float U_fan_temp, U_fan_temp_z, Uy_fan_p, Uy_fan_i, Uy_fan;
-extern const float K1, K2, T1, T2, tp; 
+extern const float K1_h907, K1_t12, K2, T1, T2, tp; 
 
 
 extern bool F_solder, F_solder_switch, F_solder_timeout, F_solder_enable, F_fan, 
      F_fan_enable, F_fan_gerkon, F_fan_temp_protect, F_solder_temp_protect, 
      F_fan_blower_protect, F_encoder_change_value, F_solder_btn_off;
-extern bool BtnCntr_ShortPush, BtnCntr_LongPush, BtnCntr_Menu;
+extern bool BtnCntr_ShortPush, BtnCntr_LongPush, BtnCntr_Menu, F_fan_btn_off;
 
 extern int16_t Solder_filter_array[T_FILTER_N];
 extern int16_t Fan_filter_array[T_FILTER_N];
@@ -88,5 +99,7 @@ extern int16_t Fan_filter_array[T_FILTER_N];
 extern const char strNULL[];
 extern uint8_t Kp_Solder;
 extern bool K_blower_flush, K_blower_off;
+
+extern float Solder_H907_PWM_limit;
 
 #endif//__CONST_VAR_H__
