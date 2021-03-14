@@ -25,6 +25,9 @@
 //FAN fan             - PA.2 Ch.2
 //Solder Thermocouple - PA.3 Ch.3
 //Spare channel       - PA.4. Ch.4
+
+//Push buttons unpressed state = High level
+
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -193,7 +196,14 @@ void regulator_solder(void)
   Uy_solder_i = fminf(Uy_solder_i, 1);
   Uy_solder_i = fmaxf(Uy_solder_i, 0);
   
-  Uy_solder = Uy_solder_p * K1 + Uy_solder_i;
+  Uy_solder = Uy_solder_p * (K1_h907 * (bool)soldertype + K1_t12 * !(bool)soldertype) + Uy_solder_i;
+  
+  //---Preheat H907 handle. When cold there is low resistance of the solder heater.
+  if((soldertype == HAKKO_907) && (U_solder_temp <= 0.25))
+  {
+    Uy_solder = fmaxf(Uy_solder, Solder_H907_PWM_limit);//100 degree 
+  }
+  
   Uy_solder = fminf(Uy_solder, 1.25);
   Uy_solder = fmaxf(Uy_solder, 0.12);
 }
@@ -217,19 +227,40 @@ void regulator_fan(void)
 //Get state of the fan handle gerkon and solder handle vibration switch
 void getDiscreteInputs(void)
 {
-  bool F_fan_gerkon_tmp, F_solder_switch_tmp;
+  bool F_fan_gerkon_tmp, F_solder_switch_tmp, F_fan_gerkon_gpio;
   static uint8_t F_fan_gerkon_cnt;
   static bool F_solder_switch_tmp_previous;
   
-  //Gerkon with bounce protection
+  //Gerkon with bounce protection 
   F_fan_gerkon_tmp = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_10);
   F_fan_gerkon_cnt = (F_fan_gerkon_cnt + 1) * F_fan_gerkon_tmp;
   if(F_fan_gerkon_cnt >= DEBOUNCE)
   {
     F_fan_gerkon_cnt = DEBOUNCE;
-    F_fan_gerkon = 1;
+    F_fan_gerkon_gpio = 1;
   }
-  else F_fan_gerkon = 0;
+  else F_fan_gerkon_gpio = 0;
+  
+  //----Fan switch off button-----------------------------------------------
+  if(Fan_off_btn.ShortPush) 
+  {
+    F_fan_btn_off = !F_fan_btn_off;
+  }
+  
+  if(fan_switch_off_source == BUTT_GERCON)
+  {
+    // Костыль, тк везде по коду берется переменная F_fan_gerkon, а F_fan_btn_off добавлена позднее, 
+    // то результирующий сигнал выключения фена с кнопки или с геркона сводится к переменной F_fan_gerkon
+    F_fan_gerkon = F_fan_gerkon_gpio & F_fan_btn_off; // Если управление феном установлено с кнопки, нажатие кнопки разрешает работу геркона, повторное нажатие делает переменную F_fan_gerkon = 0, т.е. работа фена запрещена.
+  }
+  else if(fan_switch_off_source == GERCON)
+  {
+     F_fan_gerkon = F_fan_gerkon_gpio;
+  }
+  else if(fan_switch_off_source == BUTTON)
+  {
+    F_fan_gerkon = F_fan_btn_off;
+  }
   
   //  Vibration switch. Only changing of this signal is take into account.
   // Need for solder timeout
@@ -240,7 +271,6 @@ void getDiscreteInputs(void)
     F_solder_switch = !(F_solder_switch_tmp ^ F_solder_switch_tmp_previous);
     F_solder_switch_tmp_previous = F_solder_switch_tmp;
   }
-  
 }
 
 void blower_fan_manage(void)
@@ -289,6 +319,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_ADC_Start(&hadc1);
     getButtonState(&EncBtn);
     getButtonState(&Solder_off_btn);
+    getButtonState(&Fan_off_btn);
     
     if(EncBtn.LongPush) BtnCntr_LongPush = 1;
     if(EncBtn.ShortPush) BtnCntr_ShortPush = 1;
@@ -332,6 +363,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     }
     if(progstate == FAN_E)
     {
+      //---Fan switch off button management in getDiscreteInputs() 
       Fan_temp_z = (uint16_t)(counter / 2);
       if(Fan_temp_z <= FAN_MIN_TEMP_Z)//Switch off the fan with encoder
       {
@@ -443,6 +475,7 @@ int main(void)
   
   Button_Init(&EncBtn, GPIOB, GPIO_PIN_6);
   Button_Init(&Solder_off_btn, GPIOC, GPIO_PIN_14);  
+  Button_Init(&Fan_off_btn, GPIOC, GPIO_PIN_15);
   
   HAL_Delay(200);
   
@@ -452,10 +485,21 @@ int main(void)
   sEE_ReadBuffer(&hspi2, (uint8_t*)&ID_read, EE_ID_ADDR, 8);//Was error here, have to read 2 times
   
   //Erase EE_ID so eeprom will fill with default values. Kind of hard reset.
-  //To reset need to push Switch Off Solder Button during turn on solder station.
+  //To hard reset, press the Switch-Off Solder Button while turning the station on
   if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_14) == GPIO_PIN_RESET)
   {
-    HAL_Delay(1000);
+    SSD1306_DrawFilledRectangle(0, 17, 127, 46, SSD1306_COLOR_BLACK);
+    SSD1306_GotoXY(1, 17);
+    SSD1306_Puts("Set default values.", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
+    SSD1306_UpdateScreen();
+    
+    uint8_t delaytimer = 60;
+    do
+    {
+      delaytimer--;
+      HAL_Delay(50);
+    }while((HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_14) == GPIO_PIN_RESET) && (delaytimer != 1)); //delay approx. 3s while holding the Solder button
+    
     if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_14) == GPIO_PIN_RESET)
     {
       ID_read = 0;
@@ -467,6 +511,9 @@ int main(void)
       }
     }
   }
+  
+  SSD1306_Fill(SSD1306_COLOR_BLACK);
+  SSD1306_UpdateScreen();
   
   if(ID_read != ID_EE)
   {
@@ -494,10 +541,15 @@ int main(void)
     sEE_WriteBuffer(&hspi2, (uint8_t*)&soldertype, EE_SOLDER_TYPE_ADDR, 1);
     //Number of current solder tip
     sEE_WriteBuffer(&hspi2, (uint8_t*)&N_tip_default, EE_TIP_N_ADDR, 1);
+    //Fan switch-off source (front pannel button or handle gercon)
+    sEE_WriteBuffer(&hspi2, (uint8_t*)&fan_switch_off_source, EE_FAN_SWOFF_ADDR, 1);
+    //Solder H907 handle preheat PWM limit
+    sEE_WriteBuffer(&hspi2, (uint8_t*)&Solder_H907_PWM_limit_default, EE_SOLDER_PWM_LIMIT_ADDR, 4);
     //ID
     ID_read = ID_EE;
     sEE_WriteBuffer(&hspi2, (uint8_t*)&ID_read, EE_ID_ADDR, 4);
     
+    SSD1306_GotoXY(1, 17);
     SSD1306_Puts("Initial settings done.", &segoeUI_8ptFontInfo, SSD1306_COLOR_WHITE);
     SSD1306_UpdateScreen(); 
     HAL_Delay(2000);
@@ -526,6 +578,9 @@ int main(void)
   
   sEE_ReadBuffer(&hspi2, (uint8_t*)&k_fan, EE_CAL_COEFF_FAN_ADDR, 4);
   sEE_ReadBuffer(&hspi2, (uint8_t*)&b_fan, EE_CAL_COEFF_FAN_ADDR + 4, 4);
+  
+  sEE_ReadBuffer(&hspi2, (uint8_t*)&Solder_H907_PWM_limit, EE_SOLDER_PWM_LIMIT_ADDR, 4);
+  sEE_ReadBuffer(&hspi2, (uint8_t*)&fan_switch_off_source, EE_FAN_SWOFF_ADDR, 1);
   
   Solder_temp_z_former = Solder_temp_z;
   Fan_temp_z_former = Fan_temp_z;
